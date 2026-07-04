@@ -3,7 +3,8 @@ title: Towards the dark factory: Autonomous, isolated AI agents in software engi
 slug: towards-the-dark-factory
 date: 2026-07-04
 description: How we built "clanker infrastructure" — autonomous, network-isolated AI agents that pick up tickets, design, implement, and ship PRs through a locked-down container factory provisioned with formae itself.
-image: /assets/img/dark-factory-og.png
+image: /assets/img/dark-factory-og.jpg
+banner: /assets/img/dark-factory.jpg
 ---
 
 Late 2025 was an inflection point for AI in software development. Before that I spent most of my time writing code in an editor (vim of course, as God intended). I used AI mostly for auto-complete or generating small patches with the awesome [avante](https://github.com/yetone/avante.nvim) plugin. After the release of Opus 4.5 the workflow changed completely: I switched to Claude Code and never looked back.
@@ -30,17 +31,17 @@ We use [Linear](https://linear.app) as our issue tracker. Linear is also the sur
 
 This is what our Linear board looks like.
 
-{{screenshot: 01-board.png | The board: Backlog → Design → Implementation → In Review → Done}}
+{{screenshot: 01-board.jpg | The board: Backlog → Design → Implementation → In Review → Done}}
 
 When a ticket gets picked up from the backlog it first goes to "Design," where the technical design gets worked out and a tech brief is produced and attached to the Linear issue. Only once that design is approved does the ticket move to "Implementation," where the actual coding happens. Once the PR is up the ticket lands "In Review," and once merged it moves to "Done."
 
 The column dictates *what* work Clanker will do. Assign Clanker in the "Design" column and it produces the tech brief; any blockers or decisions get escalated to the ticket owner, with Clanker commenting on the ticket and unassigning itself. Assign it in the "Implementation" column and it writes an implementation plan, delegates the coding to subagents, and opens a PR. From there you can also interact with Clanker through the PR, not just in Linear: request changes and it revises, approve and it merges the PR and moves the ticket to "Done."
 
-{{screenshot: 02-assign-clanker.png | Assigning Clanker to a ticket}}
+{{screenshot: 02-assign-clanker.jpg | Assigning Clanker to a ticket}}
 
 Another cool feature of Linear is agent sessions. Whenever an agent picks up work, it streams its thoughts and actions into a read-only thread on the issue, so you get a window into what's happening inside the session.
 
-{{screenshot: 03-agent-session.png | The agent session thread: thoughts and actions streaming as the clanker works}}
+{{screenshot: 03-agent-session.jpg | The agent session thread: thoughts and actions streaming as the clanker works}}
 
 ### The Agent Bridge
 
@@ -84,4 +85,4 @@ That loop was itself mechanical, so it quickly became its own skill. `clank-thro
 
 ---
 
-Of course, the entire clanker stack, the Agent Bridge, the containers it spawns, the firewall that boxes them in, is declared in Pkl and provisioned with **formae** itself, on our own production AWS estate. The tool provisions the factory that builds the tool.
+Of course, the entire clanker stack, the Agent Bridge, the containers it spawns, the firewall that boxes them in, is declared in Pkl and provisioned with [**formae**](https://github.com/platform-engineering-labs/formae) itself, on our own production AWS estate. The tool provisions the factory that builds the tool.

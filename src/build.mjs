@@ -24,7 +24,7 @@ const SITE = {
   author: "Jeroen Soeters",
   url: "https://jeroensoeters.github.io", // no trailing slash
   lang: "en",
-  ogImage: "/assets/img/dark-factory-og.png", // 1200x630 social card
+  ogImage: "/assets/img/dark-factory-og.jpg", // 1200x630 social card
 };
 
 // --- Markdown ----------------------------------------------------------------
@@ -199,6 +199,7 @@ function loadPosts() {
         date: data.date,
         description: data.description || "",
         ogImage: data.image,
+        banner: data.banner,
         minutes: readingTime(body.replace(/\{\{[^}]*\}\}/g, "")),
         html,
       };
@@ -216,8 +217,11 @@ function build() {
   // Individual post pages
   for (const p of posts) {
     const canonical = `${SITE.url}/${p.slug}/`;
+    const hero = p.banner
+      ? `<figure class="hero"><img src="${esc(p.banner)}" alt="${esc(p.title)}" fetchpriority="high" decoding="async"></figure>\n  `
+      : "";
     const content = `<article>
-  <div class="post-header">
+  ${hero}<div class="post-header">
     <h1>${esc(p.title)}</h1>
     <p class="post-meta"><time datetime="${p.date}">${formatDate(p.date)}</time> · ${p.minutes} min read</p>
   </div>

@@ -14,14 +14,14 @@
 <meta property="og:title" content="Towards the dark factory: Autonomous, isolated AI agents in software engineering">
 <meta property="og:description" content="How we built &quot;clanker infrastructure&quot; — autonomous, network-isolated AI agents that pick up tickets, design, implement, and ship PRs through a locked-down container factory provisioned with formae itself.">
 <meta property="og:url" content="https://jeroensoeters.github.io/towards-the-dark-factory/">
-<meta property="og:image" content="https://jeroensoeters.github.io/assets/img/dark-factory-og.png">
+<meta property="og:image" content="https://jeroensoeters.github.io/assets/img/dark-factory-og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Towards the dark factory: Autonomous, isolated AI agents in software engineering">
 <meta name="twitter:description" content="How we built &quot;clanker infrastructure&quot; — autonomous, network-isolated AI agents that pick up tickets, design, implement, and ship PRs through a locked-down container factory provisioned with formae itself.">
-<meta name="twitter:image" content="https://jeroensoeters.github.io/assets/img/dark-factory-og.png">
+<meta name="twitter:image" content="https://jeroensoeters.github.io/assets/img/dark-factory-og.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◼</text></svg>">
 <script>(function(){try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}})();</script>
 <style>/* ---------------------------------------------------------------------------
@@ -184,6 +184,16 @@ body {
 /* ---------------------------------------------------------------------------
    Article typography
    --------------------------------------------------------------------------- */
+/* Banner hero at the top of a post */
+figure.hero { margin: 0 0 2rem; }
+figure.hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
 .post-header { margin-bottom: 2.5rem; }
 .post-header h1 {
   font-size: 2rem;
@@ -317,6 +327,7 @@ figure.placeholder .box::before { content: "🖼  "; }
   </div></div></header>
 <main class="wrap">
 <article>
+  <figure class="hero"><img src="/assets/img/dark-factory.jpg" alt="Towards the dark factory: Autonomous, isolated AI agents in software engineering" fetchpriority="high" decoding="async"></figure>
   <div class="post-header">
     <h1>Towards the dark factory: Autonomous, isolated AI agents in software engineering</h1>
     <p class="post-meta"><time datetime="2026-07-04">July 4, 2026</time> · 9 min read</p>
@@ -333,60 +344,47 @@ figure.placeholder .box::before { content: "🖼  "; }
 <h3 id="the-control-plane">The control plane</h3>
 <p>We use <a href="https://linear.app">Linear</a> as our issue tracker. Linear is also the surface for our autonomous agent infrastructure. One of its features lets you provision <em>app users</em> through an OAuth app: workspace members that are @mentionable and assignable like anyone else, but backed by an app instead of a person. “Clanker” is one of these, and you hand it work exactly the way you’d hand work to a teammate, by assigning a ticket to it. Behind that single name is a fleet: every turn runs in its own fresh clanker, and many can be working in parallel.</p>
 <p>This is what our Linear board looks like.</p>
-<figure><img src="/assets/img/01-board.png" alt="The board: Backlog → Design → Implementation → In Review → Done" loading="lazy" decoding="async"><figcaption>The board: Backlog → Design → Implementation → In Review → Done</figcaption></figure>
+<figure><img src="/assets/img/01-board.jpg" alt="The board: Backlog → Design → Implementation → In Review → Done" loading="lazy" decoding="async"><figcaption>The board: Backlog → Design → Implementation → In Review → Done</figcaption></figure>
 <p>When a ticket gets picked up from the backlog it first goes to “Design,” where the technical design gets worked out and a tech brief is produced and attached to the Linear issue. Only once that design is approved does the ticket move to “Implementation,” where the actual coding happens. Once the PR is up the ticket lands “In Review,” and once merged it moves to “Done.”</p>
 <p>The column dictates <em>what</em> work Clanker will do. Assign Clanker in the “Design” column and it produces the tech brief; any blockers or decisions get escalated to the ticket owner, with Clanker commenting on the ticket and unassigning itself. Assign it in the “Implementation” column and it writes an implementation plan, delegates the coding to subagents, and opens a PR. From there you can also interact with Clanker through the PR, not just in Linear: request changes and it revises, approve and it merges the PR and moves the ticket to “Done.”</p>
-<figure><img src="/assets/img/02-assign-clanker.png" alt="Assigning Clanker to a ticket" loading="lazy" decoding="async"><figcaption>Assigning Clanker to a ticket</figcaption></figure>
+<figure><img src="/assets/img/02-assign-clanker.jpg" alt="Assigning Clanker to a ticket" loading="lazy" decoding="async"><figcaption>Assigning Clanker to a ticket</figcaption></figure>
 <p>Another cool feature of Linear is agent sessions. Whenever an agent picks up work, it streams its thoughts and actions into a read-only thread on the issue, so you get a window into what’s happening inside the session.</p>
-<figure><img src="/assets/img/03-agent-session.png" alt="The agent session thread: thoughts and actions streaming as the clanker works" loading="lazy" decoding="async"><figcaption>The agent session thread: thoughts and actions streaming as the clanker works</figcaption></figure>
+<figure><img src="/assets/img/03-agent-session.jpg" alt="The agent session thread: thoughts and actions streaming as the clanker works" loading="lazy" decoding="async"><figcaption>The agent session thread: thoughts and actions streaming as the clanker works</figcaption></figure>
 <h3 id="the-agent-bridge">The Agent Bridge</h3>
 <p>Between Linear and the agents lives a small always-on orchestration service we call the Agent Bridge. It is an ECS Fargate service, and it is what turns activity on a ticket into a running agent. When you assign Clanker to a ticket, or later interact with it on its PR, that event reaches the Agent Bridge, which figures out what kind of turn to run and spawns a fresh container to run it.</p>
 <p>Before it does, it mints a short-lived GitHub token scoped to just the repositories that turn needs, so the agent can push a branch and open a PR without ever holding a broad, long-lived credential. When the container is done it hands the baton back and exits.</p>
-<figure class="diagram" role="img" aria-label="The Agent Bridge turns Linear and GitHub events into per-turn, disposable clanker containers"><svg viewBox="0 0 660 600" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+<figure class="diagram" role="img" aria-label="The Agent Bridge turns Linear and GitHub events into per-turn, disposable clanker containers"><svg viewBox="118 45 495 360" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#333333"/>
     </marker>
   </defs>
 
-  <!-- ===== NODES positioned first (coords referenced by edges) =====
-       Linear:  cx=230  y=60..100
-       Bridge:  cx=230  y=200..240
-       clanker: cx=230  y=360..400
-       GitHub:  cx=520  y=280..320
-  -->
-
   <!-- ===== EDGES ===== -->
 
-  <!-- Linear -> Bridge : webhook (solid, left side of spine) -->
+  <!-- Linear -> Bridge : webhook (solid) label left -->
   <path d="M 214 100 L 214 200" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <rect x="150" y="140" width="66" height="20" fill="#ffffff"/>
-  <text x="183" y="154" font-size="13" fill="#333333" text-anchor="middle">webhook</text>
+  <text x="205" y="154" font-size="13" fill="#333333" text-anchor="end">webhook</text>
 
-  <!-- Bridge -> Linear : GraphQL (dotted, right side of spine) -->
+  <!-- Bridge -> Linear : GraphQL (dotted) label right -->
   <path d="M 246 200 L 246 100" fill="none" stroke="#333333" stroke-width="1.5" stroke-dasharray="2 4" marker-end="url(#arrow)"/>
-  <rect x="246" y="140" width="62" height="20" fill="#ffffff"/>
-  <text x="277" y="154" font-size="13" fill="#333333" text-anchor="middle">GraphQL</text>
+  <text x="255" y="154" font-size="13" fill="#333333" text-anchor="start">GraphQL</text>
 
-  <!-- Bridge -> clanker : ecs:RunTask (solid, left side of spine) -->
+  <!-- Bridge -> clanker : ecs:RunTask (solid) label left -->
   <path d="M 214 240 L 214 360" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <rect x="128" y="290" width="86" height="20" fill="#ffffff"/>
-  <text x="171" y="304" font-size="13" fill="#333333" text-anchor="middle">ecs:RunTask</text>
+  <text x="205" y="304" font-size="13" fill="#333333" text-anchor="end">ecs:RunTask</text>
 
-  <!-- clanker -> Bridge : hand back (dotted, right side of spine) -->
+  <!-- clanker -> Bridge : hand back (dotted) label right -->
   <path d="M 246 360 L 246 240" fill="none" stroke="#333333" stroke-width="1.5" stroke-dasharray="2 4" marker-end="url(#arrow)"/>
-  <rect x="246" y="290" width="74" height="20" fill="#ffffff"/>
-  <text x="283" y="304" font-size="13" fill="#333333" text-anchor="middle">hand back</text>
+  <text x="255" y="304" font-size="13" fill="#333333" text-anchor="start">hand back</text>
 
   <!-- clanker -> GitHub : open / update / merge PR (solid) -->
-  <path d="M 314 375 C 400 360, 450 340, 495 322" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <rect x="352" y="342" width="172" height="20" fill="#ffffff"/>
-  <text x="438" y="356" font-size="13" fill="#333333" text-anchor="middle">open / update / merge PR</text>
+  <path d="M 314 375 C 400 362, 450 346, 495 326" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="405" y="392" font-size="13" fill="#333333" text-anchor="middle">open / update / merge PR</text>
 
   <!-- GitHub -> Bridge : webhook (solid) -->
   <path d="M 505 280 C 430 226, 360 214, 314 216" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <rect x="392" y="214" width="66" height="20" fill="#ffffff"/>
-  <text x="425" y="228" font-size="13" fill="#333333" text-anchor="middle">webhook</text>
+  <text x="430" y="228" font-size="13" fill="#333333" text-anchor="middle">webhook</text>
 
   <!-- ===== NODES ===== -->
 
@@ -430,7 +428,7 @@ figure.placeholder .box::before { content: "🖼  "; }
 <p>With all of this in place, I kept finding myself in the same situation. I’d be deep in a Claude Code session on some feature, for example a customer demo, and realize I needed a small change somewhere else, support for a new resource type, or a bugfix in a common library. So I’d ask Claude to file the ticket (Linear has an excellent MCP, which we’ve wrapped in a set of custom skills), assign Clanker, review the design it produced, move it to “Implementation,” assign Clanker again, and approve the PR once I was confident it solved the problem.</p>
 <p>That loop was itself mechanical, so it quickly became its own skill. <code>clank-through</code> takes an existing ticket and oversees a clanker end to end, walking it across the board and escalating to me only when something genuinely needs a decision. So there we are: agents delegating work to agents delegating work to agents 🤖. The dark factory as it stands: the line runs, the work ships, and a human only steps in when a clanker is genuinely blocked.</p>
 <hr>
-<p>Of course, the entire clanker stack, the Agent Bridge, the containers it spawns, the firewall that boxes them in, is declared in Pkl and provisioned with <strong>formae</strong> itself, on our own production AWS estate. The tool provisions the factory that builds the tool.</p>
+<p>Of course, the entire clanker stack, the Agent Bridge, the containers it spawns, the firewall that boxes them in, is declared in Pkl and provisioned with <a href="https://github.com/platform-engineering-labs/formae"><strong>formae</strong></a> itself, on our own production AWS estate. The tool provisions the factory that builds the tool.</p>
 
 </article>
 </main>

@@ -158,6 +158,16 @@ body {
 /* ---------------------------------------------------------------------------
    Article typography
    --------------------------------------------------------------------------- */
+/* Banner hero at the top of a post */
+figure.hero { margin: 0 0 2rem; }
+figure.hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
 .post-header { margin-bottom: 2.5rem; }
 .post-header h1 {
   font-size: 2rem;
