@@ -1,0 +1,14 @@
+{
+  "name": "jeroensoeters-blog",
+  "version": "1.0.0",
+  "description": "Minimal, zero-JS-framework static blog built with a tiny Node generator.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node src/build.mjs",
+    "serve": "node src/build.mjs && npx --yes serve docs"
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.0"
+  }
+}

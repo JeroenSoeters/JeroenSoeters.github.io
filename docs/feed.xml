@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+    <title>Jeroen Soeters</title>
+    <link>https://jeroensoeters.github.io/</link>
+    <description>Notes on infrastructure, AI agents, and the tools we build.</description>
+    <language>en</language>
+    <item>
+      <title>Towards the dark factory: Autonomous, isolated AI agents in software engineering</title>
+      <link>https://jeroensoeters.github.io/towards-the-dark-factory/</link>
+      <guid>https://jeroensoeters.github.io/towards-the-dark-factory/</guid>
+      <pubDate>Sat, 04 Jul 2026 09:00:00 GMT</pubDate>
+      <description>How we built &quot;clanker infrastructure&quot; — autonomous, network-isolated AI agents that pick up tickets, design, implement, and ship PRs through a locked-down container factory provisioned with formae itself.</description>
+    </item>
+</channel></rss>
