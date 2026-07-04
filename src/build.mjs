@@ -60,6 +60,17 @@ function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// Emit a <picture> with a WebP source when a sibling .webp exists next to the
+// referenced jpg/png; otherwise a plain <img>. src is a site-absolute path.
+function pictureImg(src, alt, extraAttrs = "") {
+  const img = `<img src="${esc(src)}" alt="${esc(alt)}" ${extraAttrs}>`;
+  const webp = src.replace(/\.(jpe?g|png)$/i, ".webp");
+  if (webp !== src && existsSync(join(ASSETS_DIR, "img", webp.split("/").pop()))) {
+    return `<picture><source type="image/webp" srcset="${esc(webp)}">${img}</picture>`;
+  }
+  return img;
+}
+
 function formatDate(iso) {
   const [y, mo, d] = iso.split("-").map(Number);
   const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -87,9 +98,8 @@ function extractShortcodes(body) {
     file = file.trim();
     const cap = caption ? `<figcaption>${esc(caption.trim())}</figcaption>` : "";
     if (existsSync(join(ASSETS_DIR, "img", file))) {
-      return swap(
-        `<figure><img src="/assets/img/${esc(file)}" alt="${esc(caption.trim() || file)}" loading="lazy" decoding="async">${cap}</figure>`
-      );
+      const img = pictureImg(`/assets/img/${file}`, caption.trim() || file, 'loading="lazy" decoding="async"');
+      return swap(`<figure>${img}${cap}</figure>`);
     }
     // Graceful placeholder until the real screenshot is added to assets/img/.
     return swap(
@@ -119,8 +129,8 @@ function reinjectBlocks(html, blocks) {
 const STYLE = readFileSync(join(__dirname, "style.css"), "utf8");
 
 // Runs before first paint: apply saved/OS theme with no flash of wrong theme.
-const THEME_INIT = `(function(){try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}})();`;
-const THEME_TOGGLE = `document.getElementById('theme-toggle').addEventListener('click',function(){var d=document.documentElement,c=d.dataset.theme;var t=(c?c:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))==='dark'?'light':'dark';d.dataset.theme=t;try{localStorage.setItem('theme',t);}catch(e){}});`;
+const THEME_INIT = `(function(){var t;try{t=localStorage.getItem('theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;var m=document.createElement('meta');m.name='theme-color';m.id='tc';m.content=t==='dark'?'#0e0e0f':'#fdfdfc';document.head.appendChild(m)})();`;
+const THEME_TOGGLE = `document.getElementById('theme-toggle').addEventListener('click',function(){var d=document.documentElement;var t=d.dataset.theme==='dark'?'light':'dark';d.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}var m=document.getElementById('tc');if(m)m.content=t==='dark'?'#0e0e0f':'#fdfdfc'});`;
 
 function header() {
   return `<header class="site-header"><div class="wrap"><div class="bar">
@@ -150,6 +160,8 @@ function page({ title, description, canonical, ogImage, ogType = "website", body
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdfdfc">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0e0f">
 <title>${esc(fullTitle)}</title>
 <meta name="description" content="${desc}">
 <meta name="author" content="${esc(SITE.author)}">
@@ -218,7 +230,7 @@ function build() {
   for (const p of posts) {
     const canonical = `${SITE.url}/${p.slug}/`;
     const hero = p.banner
-      ? `<figure class="hero"><img src="${esc(p.banner)}" alt="${esc(p.title)}" fetchpriority="high" decoding="async"></figure>\n  `
+      ? `<figure class="hero">${pictureImg(p.banner, p.title, 'fetchpriority="high" decoding="async"')}</figure>\n  `
       : "";
     const content = `<article>
   ${hero}<div class="post-header">

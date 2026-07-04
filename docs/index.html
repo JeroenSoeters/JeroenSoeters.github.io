@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdfdfc">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0e0f">
 <title>Jeroen Soeters</title>
 <meta name="description" content="Notes on software development, infrastructure, and AI.">
 <meta name="author" content="Jeroen Soeters">
@@ -23,7 +25,7 @@
 <meta name="twitter:description" content="Notes on software development, infrastructure, and AI.">
 <meta name="twitter:image" content="https://jeroensoeters.github.io/assets/img/dark-factory-og.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◼</text></svg>">
-<script>(function(){try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}})();</script>
+<script>(function(){var t;try{t=localStorage.getItem('theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;var m=document.createElement('meta');m.name='theme-color';m.id='tc';m.content=t==='dark'?'#0e0e0f':'#fdfdfc';document.head.appendChild(m)})();</script>
 <style>/* ---------------------------------------------------------------------------
    Design tokens. Light is the default; dark applies via prefers-color-scheme
    (no-JS users) OR the [data-theme] attribute set by the toggle (overrides).
@@ -338,6 +340,6 @@ figure.placeholder .box::before { content: "🖼  "; }
     <span>© 2026 Jeroen Soeters</span>
     <span><a href="/feed.xml">RSS</a> · built with a tiny script, no trackers</span>
   </div></footer>
-<script>document.getElementById('theme-toggle').addEventListener('click',function(){var d=document.documentElement,c=d.dataset.theme;var t=(c?c:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))==='dark'?'light':'dark';d.dataset.theme=t;try{localStorage.setItem('theme',t);}catch(e){}});</script>
+<script>document.getElementById('theme-toggle').addEventListener('click',function(){var d=document.documentElement;var t=d.dataset.theme==='dark'?'light':'dark';d.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}var m=document.getElementById('tc');if(m)m.content=t==='dark'?'#0e0e0f':'#fdfdfc'});</script>
 </body>
 </html>

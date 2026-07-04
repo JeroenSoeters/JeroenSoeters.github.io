@@ -17,7 +17,6 @@ This flow works well for substantive features that benefit from an interactive d
 
 Over the last few weeks I set aside a portion of my time to tackle this, and the result is what we now call our **clanker infrastructure**. Clankers are autonomous agents that do exactly the mechanical steps outlined above.
 
----
 
 ## Building the machine that builds the machine
 
@@ -65,7 +64,6 @@ These containers can potentially feed attacker-influenceable text, like issue de
 
 > A side effect of cutting off the open internet: a clanker is useless for research tickets. We're fine with that. The clankers exist to execute well-specified work, not to wander an open solution space.
 
----
 
 ## Cross-model reviews
 
@@ -75,7 +73,6 @@ We put a lot of effort into the triage step. Codex flags everything that could t
 
 The one place we don't let that judgment soften anything is correctness and security. A finding there can't be waved away with a bare "rejected"; it clears only with a real fix, a concrete argument that it doesn't apply, or a human's sign-off. The same clanker wrote the code and decides which findings to honor, so it can't be allowed to quietly bury a serious finding about its own work.
 
----
 
 ## Meta-clanking
 
@@ -83,6 +80,5 @@ With all of this in place, I kept finding myself in the same situation. I'd be d
 
 That loop was itself mechanical, so it quickly became its own skill. `clank-through` takes an existing ticket and oversees a clanker end to end, walking it across the board and escalating to me only when something genuinely needs a decision. So there we are: agents delegating work to agents delegating work to agents 🤖. The dark factory as it stands: the line runs, the work ships, and a human only steps in when a clanker is genuinely blocked.
 
----
 
 Of course, the entire clanker stack, the Agent Bridge, the containers it spawns, the firewall that boxes them in, is declared in Pkl and provisioned with [**formae**](https://github.com/platform-engineering-labs/formae) itself, on our own production AWS estate. The tool provisions the factory that builds the tool.
