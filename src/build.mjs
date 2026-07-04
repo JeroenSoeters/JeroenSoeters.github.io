@@ -20,7 +20,7 @@ const OUT = join(ROOT, "docs");
 // --- Site configuration -----------------------------------------------------
 const SITE = {
   title: "Jeroen Soeters",
-  tagline: "Notes on infrastructure, AI agents, and the tools we build.",
+  tagline: "Notes on software development, infrastructure, and AI.",
   author: "Jeroen Soeters",
   url: "https://jeroensoeters.github.io", // no trailing slash
   lang: "en",

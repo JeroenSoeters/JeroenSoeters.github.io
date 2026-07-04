@@ -2,7 +2,7 @@
 <rss version="2.0"><channel>
     <title>Jeroen Soeters</title>
     <link>https://jeroensoeters.github.io/</link>
-    <description>Notes on infrastructure, AI agents, and the tools we build.</description>
+    <description>Notes on software development, infrastructure, and AI.</description>
     <language>en</language>
     <item>
       <title>Towards the dark factory: Autonomous, isolated AI agents in software engineering</title>
