@@ -7,11 +7,11 @@ image: /assets/img/sdk-plugins-og.jpg
 banner: /assets/img/sdk-plugins.jpg
 ---
 
-Like most infrastructure-as-code (IaC) tools, **formae** has a plugin architecture. The **formae** agent knows how to schedule, queue, order, rate-limit, execute, and retry plugin operations; the actual API interaction lives in what we call **resource plugins**. This post is a short history of how our plugin SDK has evolved, the constraints that forced each change, and where we’ve landed today.
+Like most infrastructure-as-code (IaC) tools, formae has a plugin architecture. The formae agent knows how to schedule, queue, order, rate-limit, execute, and retry plugin operations; the actual API interaction lives in what we call **resource plugins**. This post is a short history of how our plugin SDK has evolved, the constraints that forced each change, and where we’ve landed today.
 
 ## A deliberately tiny interface
 
-The **formae** resource plugin API is intentionally tiny. It has create/read/update/delete (CRUD) methods, a `Status` method for long-running (asynchronous) operations, a `List` method that our continuous discovery process uses, and a handful of configuration knobs. Here it is in full:
+The formae resource plugin API is intentionally tiny. It has create/read/update/delete (CRUD) methods, a `Status` method for long-running (asynchronous) operations, a `List` method that our continuous discovery process uses, and a handful of configuration knobs. Here it is in full:
 
 ```go
 type ResourcePlugin interface {
@@ -95,7 +95,7 @@ The plugin ran in-process inside the agent, and the developer only had to implem
 
 This is where most people who try Go’s `plugin` package get hurt. The mechanism only works if the agent and the plugin are built in near-perfect lockstep, and that requirement shows up in two ways.
 
-The first is the **toolchain**. The plugin and the agent must be built with the exact same Go version; even a patch-level mismatch is refused at load time. While every plugin lived in the **formae** monorepo this was a non-issue, since a single Makefile pinned one toolchain for every build. But it would clearly become a problem once anyone started building plugins on their own machines and their own schedules.
+The first is the **toolchain**. The plugin and the agent must be built with the exact same Go version; even a patch-level mismatch is refused at load time. While every plugin lived in the formae monorepo this was a non-issue, since a single Makefile pinned one toolchain for every build. But it would clearly become a problem once anyone started building plugins on their own machines and their own schedules.
 
 The second, and the one we couldn’t engineer around, is **dependencies**. Any package imported by *both* the host and the plugin must be at the exact same version, built with the exact same flags (down to things like `-race` and `-tags`). This one isn't fixable on our side: we can't control, or safely pin, the transitive dependencies that the many SDKs we wrap drag in. The moment two of them conflict, the plugin won't load, full stop.
 
@@ -103,9 +103,9 @@ We hit all of this while plugins were still in the monorepo, before we’d shipp
 
 ## Second iteration: lift the plugin into its own process with Ergo
 
-The **formae** agent is built on the [Ergo](https://ergo.services/) actor framework, which brings an Erlang-style concurrency model to Go. (If the actor model is new to you, I wrote a separate [primer on the actor model and Ergo](/unlocking-concurrency-in-go-67a530807616).) For this post, you only need one idea: the actor model’s unit of concurrency is a **process**. Not an OS process, but a lightweight process managed by a VM. In Erlang that VM is the BEAM; in Ergo it’s the **Ergo node**. Processes talk to each other by sending messages, and a process can spawn new processes.
+The formae agent is built on the [Ergo](https://ergo.services/) actor framework, which brings an Erlang-style concurrency model to Go. (If the actor model is new to you, I wrote a separate [primer on the actor model and Ergo](/unlocking-concurrency-in-go-67a530807616).) For this post, you only need one idea: the actor model’s unit of concurrency is a **process**. Not an OS process, but a lightweight process managed by a VM. In Erlang that VM is the BEAM; in Ergo it’s the **Ergo node**. Processes talk to each other by sending messages, and a process can spawn new processes.
 
-The **formae** agent hosts an Ergo node, and everything the agent does is carried out by one or more Ergo processes, including plugin operations like the `Create` call above. The actor that orchestrates plugin operations is the **PluginOperator**.
+The formae agent hosts an Ergo node, and everything the agent does is carried out by one or more Ergo processes, including plugin operations like the `Create` call above. The actor that orchestrates plugin operations is the **PluginOperator**.
 
 So we asked: what if we lift the PluginOperator out into a *separate* OS process running its own Ergo node (a “plugin process”), and let it talk to the agent over the message protocol the agent already speaks everywhere internally: Ergo messages?
 
@@ -116,8 +116,8 @@ The piece that makes this elegant is a foundational Erlang/OTP idea: **network t
 Concretely this means you send messages the same way regardless of where the receiving process lives. A `Send` to a local process and a `Send` to a process on another continent are written identically; only the target process identifier (PID) differs. We rely on this in three places:
 
 - **Workflow tests** (our automated tests that validate actor orchestration) must *not* spin up a subprocess per test, so there we spawn the PluginOperator locally on the agent’s node and messages stay in-process.
-- In the **OSS formae agent**, all plugins run locally on the agent host, so in production the messages cross the process boundary but stay on one machine.
-- For running **formae** at scale, the **paid version** supports *satellite agents*: agents on different hosts that manage plugin processes and relay back to the primary agent.
+- In the OSS formae agent, all plugins run locally on the agent host, so in production the messages cross the process boundary but stay on one machine.
+- For running formae at scale, the **paid version** supports *satellite agents*: agents on different hosts that manage plugin processes and relay back to the primary agent.
 
 Network transparency makes the agent oblivious to topology. From its perspective it’s just exchanging messages with a PluginOperator process, wherever that process happens to run.
 
