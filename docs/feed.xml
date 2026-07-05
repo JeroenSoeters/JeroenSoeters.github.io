@@ -12,6 +12,13 @@
       <description>How we built &quot;clanker infrastructure&quot; — autonomous, network-isolated AI agents that pick up tickets, design, implement, and ship PRs through a locked-down container factory provisioned with formae itself.</description>
     </item>
     <item>
+      <title>Targets, resources, resolvables and stacks: The formae infrastructure graph explained</title>
+      <link>https://jeroensoeters.github.io/formae-infrastructure-graph/</link>
+      <guid>https://jeroensoeters.github.io/formae-infrastructure-graph/</guid>
+      <pubDate>Wed, 10 Jun 2026 09:00:00 GMT</pubDate>
+      <description>How formae's core concepts — targets, resources, resolvables, and stacks — compose into one infrastructure graph, and why the power is in how they combine rather than in any one of them.</description>
+    </item>
+    <item>
       <title>Go plugins, actors, and schema evolution: Inside formae's plugin SDK</title>
       <link>https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/</link>
       <guid>https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/</guid>
