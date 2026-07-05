@@ -71,7 +71,7 @@ A model tends to be blind to the weaknesses in its own output, so before a desig
 
 We put a lot of effort into the triage step. Codex flags everything that could theoretically be a problem, whether or not it matters here, so its findings need weighing rather than blind trust. The skill carries the context to do that. It takes into account the guarantees the codebase already provides, for example that formae and its plugins are built on the [actor model](https://blog.platform.engineering/unlocking-concurrency-in-go-67a530807616), so a flagged race or shared-state hazard that can't occur under the actor model gets discounted. It verifies whether a feature is even live yet, so backwards-compatibility and migration findings get set aside when there are no users or data to break. The reviewer surfaces everything; the skill decides what actually matters here.
 
-The one place we don't let that judgment soften anything is correctness and security. A finding there can't be waved away with a bare "rejected"; it clears only with a real fix, a concrete argument that it doesn't apply, or a human's sign-off. The same clanker wrote the code and decides which findings to honor, so it can't be allowed to quietly bury a serious finding about its own work.
+Correctness and security are the exception. A finding there can't be waved away with a bare "rejected"; it clears only with a real fix, a concrete argument that it doesn't apply, or a human's sign-off. The same clanker wrote the code and decides which findings to honor, so it can't be allowed to quietly bury a serious one.
 
 
 ## Clankers all the way down
