@@ -12,6 +12,13 @@
       <description>How we built &quot;clanker infrastructure&quot; — autonomous, network-isolated AI agents that pick up tickets, design, implement, and ship PRs through a locked-down container factory provisioned with formae itself.</description>
     </item>
     <item>
+      <title>Go plugins, actors, and schema evolution: inside formae's plugin SDK</title>
+      <link>https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/</link>
+      <guid>https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/</guid>
+      <pubDate>Mon, 01 Jun 2026 09:00:00 GMT</pubDate>
+      <description>How formae's plugin SDK evolved across three iterations — from an in-process actor system to independent, hot-swappable plugin binaries on a schema we can change without breaking the fleet.</description>
+    </item>
+    <item>
       <title>Solving Infrastructure Drift With formae</title>
       <link>https://jeroensoeters.github.io/solving-infrastructure-drift-with-formae/</link>
       <guid>https://jeroensoeters.github.io/solving-infrastructure-drift-with-formae/</guid>

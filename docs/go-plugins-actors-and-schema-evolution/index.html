@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdfdfc">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0e0f">
+<title>Go plugins, actors, and schema evolution: inside formae's plugin SDK — Jeroen Soeters</title>
+<meta name="description" content="How formae's plugin SDK evolved across three iterations — from an in-process actor system to independent, hot-swappable plugin binaries on a schema we can change without breaking the fleet.">
+<meta name="author" content="Jeroen Soeters">
+<link rel="canonical" href="https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/">
+<link rel="alternate" type="application/rss+xml" title="Jeroen Soeters" href="/feed.xml">
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Jeroen Soeters">
+<meta property="og:title" content="Go plugins, actors, and schema evolution: inside formae's plugin SDK">
+<meta property="og:description" content="How formae's plugin SDK evolved across three iterations — from an in-process actor system to independent, hot-swappable plugin binaries on a schema we can change without breaking the fleet.">
+<meta property="og:url" content="https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/">
+<meta property="og:image" content="https://jeroensoeters.github.io/assets/img/sdk-plugins-og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Go plugins, actors, and schema evolution: inside formae's plugin SDK">
+<meta name="twitter:description" content="How formae's plugin SDK evolved across three iterations — from an in-process actor system to independent, hot-swappable plugin binaries on a schema we can change without breaking the fleet.">
+<meta name="twitter:image" content="https://jeroensoeters.github.io/assets/img/sdk-plugins-og.jpg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◼</text></svg>">
+<script>(function(){var t;try{t=localStorage.getItem('theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;var m=document.createElement('meta');m.name='theme-color';m.id='tc';m.content=t==='dark'?'#0e0e0f':'#fdfdfc';document.head.appendChild(m)})();</script>
+<style>/* ---------------------------------------------------------------------------
+   Design tokens. Light is the default; dark applies via prefers-color-scheme
+   (no-JS users) OR the [data-theme] attribute set by the toggle (overrides).
+   --------------------------------------------------------------------------- */
+:root {
+  --bg:        #fdfdfc;
+  --fg:        #1a1a1a;
+  --muted:     #666666;
+  --faint:     #8a8a8a;
+  --link:      #0f766e;
+  --link-hover:#0b5a54;
+  --border:    #e6e6e3;
+  --code-bg:   #f4f4f1;
+  --panel:     #ffffff;
+  --sel:       #cdeee8;
+  --maxw:      42rem;   /* ~66ch measure */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #0e0e0f;
+    --fg:        #e8e8e6;
+    --muted:     #a0a0a0;
+    --faint:     #6f6f70;
+    --link:      #5eead4;
+    --link-hover:#99f6e4;
+    --border:    #262628;
+    --code-bg:   #1a1a1c;
+    --panel:     #161618;
+    --sel:       #134e4a;
+  }
+}
+
+/* Explicit toggle wins over the OS preference. */
+[data-theme="light"] {
+  --bg:#fdfdfc; --fg:#1a1a1a; --muted:#666; --faint:#8a8a8a;
+  --link:#0f766e; --link-hover:#0b5a54; --border:#e6e6e3;
+  --code-bg:#f4f4f1; --panel:#ffffff; --sel:#cdeee8;
+}
+[data-theme="dark"] {
+  --bg:#0e0e0f; --fg:#e8e8e6; --muted:#a0a0a0; --faint:#6f6f70;
+  --link:#5eead4; --link-hover:#99f6e4; --border:#262628;
+  --code-bg:#1a1a1c; --panel:#161618; --sel:#134e4a;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  font-size: 18px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  line-height: 1.65;
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+::selection { background: var(--sel); }
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Header / footer
+   --------------------------------------------------------------------------- */
+.site-header {
+  padding: 2.5rem 0 1.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.site-header .bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.site-title {
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.site-title a { color: var(--fg); text-decoration: none; }
+.site-title a:hover { color: var(--link); }
+.tagline {
+  color: var(--muted);
+  margin: 0.4rem 0 0;
+  font-size: 0.95rem;
+}
+
+/* Theme toggle — the only interactive JS on the page. */
+.theme-toggle {
+  flex: 0 0 auto;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  width: 2.1rem;
+  height: 2.1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.theme-toggle:hover { color: var(--fg); border-color: var(--faint); }
+.theme-toggle .icon-dark  { display: none; }
+[data-theme="dark"] .theme-toggle .icon-dark  { display: inline; }
+[data-theme="dark"] .theme-toggle .icon-light { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .icon-dark  { display: inline; }
+  :root:not([data-theme="light"]) .theme-toggle .icon-light { display: none; }
+}
+
+.site-footer {
+  margin-top: 4rem;
+  padding: 2rem 0 3rem;
+  border-top: 1px solid var(--border);
+  color: var(--faint);
+  font-size: 0.85rem;
+}
+.site-footer .bar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.site-footer a { color: var(--muted); }
+
+/* ---------------------------------------------------------------------------
+   Home / post list
+   --------------------------------------------------------------------------- */
+.post-list { list-style: none; padding: 0; margin: 0; }
+.post-list li { padding: 1.1rem 0; border-bottom: 1px solid var(--border); }
+.post-list li:last-child { border-bottom: 0; }
+.post-list time { color: var(--faint); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.post-list a { display: block; font-size: 1.15rem; font-weight: 600; text-decoration: none; margin-top: 0.15rem; letter-spacing: -0.01em; }
+.post-list p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.95rem; }
+
+/* ---------------------------------------------------------------------------
+   Article typography
+   --------------------------------------------------------------------------- */
+/* Banner hero at the top of a post */
+figure.hero { margin: 0 0 2rem; }
+figure.hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.post-header { margin-bottom: 2.5rem; }
+.post-header h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.6rem;
+  font-weight: 700;
+}
+.post-meta { color: var(--faint); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+article { font-size: 1.05rem; }
+article p { margin: 1.35rem 0; }
+article h2 {
+  font-size: 1.4rem;
+  letter-spacing: -0.015em;
+  margin: 2.75rem 0 1rem;
+  line-height: 1.25;
+}
+article h3 {
+  font-size: 1.12rem;
+  margin: 2rem 0 0.75rem;
+  line-height: 1.3;
+}
+article a { color: var(--link); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--link) 35%, transparent); transition: border-color 0.15s ease, color 0.15s ease; }
+article a:hover { color: var(--link-hover); border-bottom-color: var(--link); }
+
+article ul, article ol { padding-left: 1.4rem; }
+article li { margin: 0.4rem 0; }
+article li::marker { color: var(--faint); }
+
+article strong { font-weight: 650; }
+
+article hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 3rem auto;
+  width: 100%;
+}
+
+/* Inline + block code */
+code {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+}
+pre {
+  background: var(--code-bg);
+  padding: 1rem 1.1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 0.85rem; }
+
+/* Pull-quote / aside blockquotes */
+blockquote {
+  margin: 1.75rem 0;
+  padding: 0.25rem 0 0.25rem 1.1rem;
+  border-left: 3px solid var(--link);
+  color: var(--muted);
+  font-style: italic;
+}
+blockquote p { margin: 0.5rem 0; }
+
+/* ---------------------------------------------------------------------------
+   Figures: screenshots + inline diagram
+   --------------------------------------------------------------------------- */
+figure {
+  margin: 2.25rem 0;
+}
+figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+figcaption {
+  margin-top: 0.6rem;
+  color: var(--faint);
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.45;
+}
+
+/* The Agent Bridge diagram is a light-toned vector; frame it on a light panel
+   so it reads intentionally in both themes. */
+figure.diagram {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+figure.diagram svg { display: block; width: 100%; height: auto; max-width: 460px; margin: 0 auto; }
+
+/* Placeholder shown until a real screenshot is dropped into assets/img/ */
+figure.placeholder .box {
+  border: 1px dashed var(--faint);
+  border-radius: 8px;
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  color: var(--faint);
+  font-size: 0.85rem;
+  background: var(--code-bg);
+}
+figure.placeholder .box::before { content: "🖼  "; }
+
+/* ---------------------------------------------------------------------------
+   Responsive
+   --------------------------------------------------------------------------- */
+@media (max-width: 32rem) {
+  html { font-size: 17px; }
+  .post-header h1 { font-size: 1.65rem; }
+  .site-header { padding-top: 1.75rem; }
+}
+</style>
+</head>
+<body>
+<header class="site-header"><div class="wrap"><div class="bar">
+    <div>
+      <p class="site-title"><a href="/">Jeroen Soeters</a></p>
+      <p class="tagline">Notes on software development, infrastructure, and AI.</p>
+    </div>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <span class="icon-light" aria-hidden="true">☾</span><span class="icon-dark" aria-hidden="true">☀</span>
+    </button>
+  </div></div></header>
+<main class="wrap">
+<article>
+  <figure class="hero"><picture><source type="image/webp" srcset="/assets/img/sdk-plugins.webp"><img src="/assets/img/sdk-plugins.jpg" alt="Go plugins, actors, and schema evolution: inside formae's plugin SDK" fetchpriority="high" decoding="async"></picture></figure>
+  <div class="post-header">
+    <h1>Go plugins, actors, and schema evolution: inside formae's plugin SDK</h1>
+    <p class="post-meta"><time datetime="2026-06-01">June 1, 2026</time> · 11 min read</p>
+  </div>
+  <p>Like most infrastructure-as-code (IaC) tools, <strong>formae</strong> has a plugin architecture. The <strong>formae</strong> agent knows how to schedule, queue, order, rate-limit, execute, and retry plugin operations; the actual API interaction lives in what we call <strong>resource plugins</strong>. This post is a short history of how our plugin SDK has evolved, the constraints that forced each change, and where we’ve landed today.</p>
+<h2 id="a-deliberately-tiny-interface">A deliberately tiny interface</h2>
+<p>The <strong>formae</strong> resource plugin API is intentionally tiny. It has create/read/update/delete (CRUD) methods, a <code>Status</code> method for long-running (asynchronous) operations, a <code>List</code> method that our continuous discovery process uses, and a handful of configuration knobs. Here it is in full:</p>
+<pre><code class="language-go">type ResourcePlugin interface {
+   
+    // Configuration
+    RateLimit() pkgmodel.RateLimitConfig
+    DiscoveryFilters() []pkgmodel.MatchFilter
+    LabelConfig() pkgmodel.LabelConfig
+  
+    // CRUD operations
+    Create(ctx context.Context, request *resource.CreateRequest) (*resource.CreateResult, error)
+    Read(ctx context.Context, request *resource.ReadRequest) (*resource.ReadResult, error)
+    Update(ctx context.Context, request *resource.UpdateRequest) (*resource.UpdateResult, error)
+    Delete(ctx context.Context, request *resource.DeleteRequest) (*resource.DeleteResult, error)
+    
+    // Async operation support
+    Status(ctx context.Context, request *resource.StatusRequest) (*resource.StatusResult, error)
+    
+    // Discovery support
+    List(ctx context.Context, request *resource.ListRequest) (*resource.ListResult, error)
+}
+</code></pre>
+<p>We keep this interface as small as we can on purpose. AI coding agents already write the vast majority of plugin code, and a reliable generated plugin comes from three things working together: a small surface with little room to deviate, an extensive <a href="https://github.com/platform-engineering-labs/formae/blob/main/pkg/plugin-conformance-tests/README.md">conformance harness</a> that turns “did it get it right?” into a runnable answer the agent can loop against, and <a href="https://docs.formae.io/en/latest/plugin-sdk/tutorial/">LLM-oriented documentation</a> that walks through a plugin one operation at a time, test-first. The interface is just the first leg.</p>
+<p>That interface has stayed fixed ever since. What changed, three times over, is the machinery behind it: how a plugin is loaded, where it runs, and how it talks to the agent.</p>
+<h2 id="first-iteration-pkgplugin-and-gos-native-plugins">First iteration: <code>pkg/plugin</code> and Go’s native plugins</h2>
+<p>The goal from day one was that a plugin developer should only have to implement the methods on <code>ResourcePlugin</code>, nothing more. We also didn’t want to spawn a new process for every plugin <em>invocation</em>. The fastest way to get both was Go’s built-in plugin mechanism.</p>
+<p>Go’s <code>plugin</code> package loads compiled Go code at runtime via dynamic linking against shared objects: <code>.so</code> on Linux/FreeBSD, <code>.dylib</code> on macOS. (Notably, there’s no Windows support.) A plugin looked like this:</p>
+<pre><code class="language-go">type AWS struct{}
+
+// Compile-time check that we satisfy the contract
+var _ plugin.ResourcePlugin = AWS{}
+
+// Exported symbol the agent looks up by name
+var Plugin = AWS{}
+
+func (a AWS) Create(ctx context.Context, request *resource.CreateRequest) (*resource.CreateResult, error) {
+    // AWS provisioning code
+}
+</code></pre>
+<p>Building it:</p>
+<pre><code>go build -C plugins/aws -buildmode=plugin -o aws.so
+</code></pre>
+<p>The plugin source is ordinary Go in <code>package main</code> (even though no <code>main()</code> ever runs). The toolchain produces an ELF (Mach-O on macOS) shared library with Go’s runtime metadata baked in: type information, GC pointers, and so on. That metadata is exactly why these aren’t just plain C-style shared libraries.</p>
+<p>On the agent side, loading looked like this:</p>
+<pre><code>dl, err := goplugin.Open(&quot;aws.so&quot;)
+if err != nil {
+    return err
+}
+
+// Look up the exported &quot;Plugin&quot; symbol
+sym, err := dl.Lookup(&quot;Plugin&quot;)
+if err != nil {
+    return err
+}
+plug, ok := sym.(plugin.ResourcePlugin)
+if !ok {
+    return fmt.Errorf(&quot;aws.so does not implement ResourcePlugin&quot;)
+}
+
+// Now we can use the plugin
+plug.Create(ctx, req)
+</code></pre>
+<p>The plugin ran in-process inside the agent, and the developer only had to implement <code>ResourcePlugin</code>. For a while, this was great.</p>
+<h2 id="where-it-broke-down">Where it broke down</h2>
+<p>This is where most people who try Go’s <code>plugin</code> package get hurt. The mechanism only works if the agent and the plugin are built in near-perfect lockstep, and that requirement shows up in two ways.</p>
+<p>The first is the <strong>toolchain</strong>. The plugin and the agent must be built with the exact same Go version; even a patch-level mismatch is refused at load time. While every plugin lived in the <strong>formae</strong> monorepo this was a non-issue, since a single Makefile pinned one toolchain for every build. But it would clearly become a problem once anyone started building plugins on their own machines and their own schedules.</p>
+<p>The second, and the one we couldn’t engineer around, is <strong>dependencies</strong>. Any package imported by <em>both</em> the host and the plugin must be at the exact same version, built with the exact same flags (down to things like <code>-race</code> and <code>-tags</code>). This one isn’t fixable on our side: we can’t control, or safely pin, the transitive dependencies that the many SDKs we wrap drag in. The moment two of them conflict, the plugin won’t load, full stop.</p>
+<p>We hit all of this while plugins were still in the monorepo, before we’d shipped a public SDK at all. It was enough to make the verdict obvious: a public plugin SDK built on Go’s <code>plugin</code> package was a dead end, and we needed a fundamentally different approach.</p>
+<h2 id="second-iteration-lift-the-plugin-into-its-own-process-with-ergo">Second iteration: lift the plugin into its own process with Ergo</h2>
+<p>The <strong>formae</strong> agent is built on the <a href="https://ergo.services/">Ergo</a> actor framework, which brings an Erlang-style concurrency model to Go. (If the actor model is new to you, I wrote a separate <a href="/unlocking-concurrency-in-go-67a530807616">primer on the actor model and Ergo</a>.) For this post, you only need one idea: the actor model’s unit of concurrency is a <strong>process</strong>. Not an OS process, but a lightweight process managed by a VM. In Erlang that VM is the BEAM; in Ergo it’s the <strong>Ergo node</strong>. Processes talk to each other by sending messages, and a process can spawn new processes.</p>
+<p>The <strong>formae</strong> agent hosts an Ergo node, and everything the agent does is carried out by one or more Ergo processes, including plugin operations like the <code>Create</code> call above. The actor that orchestrates plugin operations is the <strong>PluginOperator</strong>.</p>
+<p>So we asked: what if we lift the PluginOperator out into a <em>separate</em> OS process running its own Ergo node (a “plugin process”), and let it talk to the agent over the message protocol the agent already speaks everywhere internally: Ergo messages?</p>
+<p>This isn’t a process per invocation. It’s a persistent process that the agent communicates with by message-passing. And because each plugin is now its own binary, the dependency-hell problem simply disappears: there’s no shared linking anymore. The same separation decouples licensing: since a plugin isn’t linked into the agent, it can carry whatever license its author chooses, so OSS and proprietary plugins can be onboarded side by side. The developer still implements only <code>ResourcePlugin</code>; the SDK is now a normal Go binary with a <code>main()</code> that we already provide, which bootstraps the Ergo node and hoists the plugin implementation into an actor process.</p>
+<p>The piece that makes this elegant is a foundational Erlang/OTP idea: <strong>network transparency</strong>. The location of a process (same Ergo node, a different node on the same machine, or a node halfway around the world) doesn’t change how you interact with it.</p>
+<p>Concretely this means you send messages the same way regardless of where the receiving process lives. A <code>Send</code> to a local process and a <code>Send</code> to a process on another continent are written identically; only the target process identifier (PID) differs. We rely on this in three places:</p>
+<ul>
+<li><strong>Workflow tests</strong> (our automated tests that validate actor orchestration) must <em>not</em> spin up a subprocess per test, so there we spawn the PluginOperator locally on the agent’s node and messages stay in-process.</li>
+<li>In the <strong>OSS formae agent</strong>, all plugins run locally on the agent host, so in production the messages cross the process boundary but stay on one machine.</li>
+<li>For running <strong>formae</strong> at scale, the <strong>paid version</strong> supports <em>satellite agents</em>: agents on different hosts that manage plugin processes and relay back to the primary agent.</li>
+</ul>
+<p>Network transparency makes the agent oblivious to topology. From its perspective it’s just exchanging messages with a PluginOperator process, wherever that process happens to run.</p>
+<h2 id="get-jeroen-soeterss-stories-in-your-inbox">Get Jeroen Soeters’s stories in your inbox</h2>
+<p>Join Medium for free to get updates from this writer.</p>
+<p>Remember me for faster sign in</p>
+<p>Here is the shape of the change. Before, the whole pipeline lived in the agent process and shared one address space:</p>
+<figure><picture><source type="image/webp" srcset="/assets/img/sdk-01.webp"><img src="/assets/img/sdk-01.jpg" alt="All actors share one address space; messages never leave the process." loading="lazy" decoding="async"></picture><figcaption>All actors share one address space; messages never leave the process.</figcaption></figure>
+<p>After, each plugin runs in its own separate process, with its own Ergo node and binary. The ResourceUpdater drives them all the same way, and the messages now cross a process boundary instead of staying in-process:</p>
+<figure><picture><source type="image/webp" srcset="/assets/img/sdk-02.webp"><img src="/assets/img/sdk-02.jpg" alt="Each plugin runs in its own process. The same message send reaches every one, wherever it lives." loading="lazy" decoding="async"></picture><figcaption>Each plugin runs in its own process. The same message send reaches every one, wherever it lives.</figcaption></figure>
+<h2 id="the-first-schema-change">The first schema change</h2>
+<p>This worked beautifully in the first public SDK release. Then we needed to change the schema, meaning the message contract between the agent and the plugins. Many early SDK adopters will have painful memories of this:</p>
+<pre><code>ERR ... unable to decode received message: malformed EDF: end of data
+</code></pre>
+<p>The binary serialization format Ergo uses on the wire is the <strong>Ergo Data Format (EDF)</strong>. Out of the box, EDF serializes a registered Go type field by field, and both ends of a connection have to share the exact same definition of that type.</p>
+<p>The type that bit us was the schema. On startup, every plugin announces its resource schemas to the agent: the fields each resource has, plus a set of annotations the engine needs, things like whether a field is create-only, whether it’s required, or how it links a resource to its parent. These schemas are authored in Pkl and translated to Go, and they change constantly, because we add new annotations as new engine features land. A trimmed-down version of one annotation type:</p>
+<pre><code class="language-go">type FieldHint struct {
+    CreateOnly       bool
+    WriteOnly        bool
+    Required         bool
+    RequiredOnCreate bool
+}
+</code></pre>
+<p>When a new feature needs a new annotation, we add a field:</p>
+<pre><code class="language-go">type FieldHint struct {
+    CreateOnly       bool
+    WriteOnly        bool
+    Required         bool
+    RequiredOnCreate bool
+    EdgeKind         EdgeKind // new: how this field links resources in the dependency graph
+}
+</code></pre>
+<p>Under native EDF, that one addition was enough to break things. These annotation types are nested inside the announcement message, so changing <code>FieldHint</code> changed the registered type of the whole announcement. An agent built against the new definition and a plugin still compiled against the old one no longer agreed, and EDF refused to decode the message. That is the <code>malformed EDF</code> error above, and because it happened at announce time, an out-of-date plugin couldn’t even start.</p>
+<p>For a plugin SDK, that’s a non-starter: a backwards-compatible change on our side should never force every plugin author to recompile and re-publish on our release schedule.</p>
+<h2 id="third-iteration-messagepack-to-the-rescue">Third iteration: MessagePack to the rescue</h2>
+<p>Fortunately, iteration three was a far smaller pivot than the jump to separate processes. Ergo lets you supply custom marshalers: <code>MarshalEDF(w io.Writer) error</code> and <code>UnmarshalEDF(data []byte) error</code>. EDF doesn’t disappear as the wire protocol; instead, your custom payload gets wrapped in EDF’s framing. On the wire it looks roughly like this:</p>
+<pre><code class="language-go">[ EDF type tag ][ EDF length prefix ][ your MarshalEDF output ]
+</code></pre>
+<p>The EDF decoder reads the type tag, and if the type implements <code>Unmarshaler</code>, it allocates a value of that registered type and calls <code>UnmarshalEDF(bytes)</code> on it.</p>
+<p>The important shift is that EDF no longer looks <em>inside</em> the message. It matches on the registered type tag and treats the body as an opaque blob, so the struct’s fields are no longer part of what the two nodes have to agree on. The body’s encoding is now ours to choose.</p>
+<p>We chose <strong>MessagePack</strong>. Protobuf was the obvious alternative, but it brings a codegen step and a schema toolchain we didn’t want, and its main payoff, a language-neutral contract, is wasted on us: these messages change quickly and will only ever be read by Go.</p>
+<p>For most messages the marshaler is a one-liner on each side. The plugin announcement that carries the schemas is just another message type:</p>
+<pre><code class="language-go">func (m PluginAnnouncement) MarshalEDF(w io.Writer) error    { return encodeMsgpack(w, &amp;m) }
+func (m *PluginAnnouncement) UnmarshalEDF(data []byte) error { return decodeMsgpack(data, m) }
+</code></pre>
+<p>Because MessagePack encodes each field by name (the body is a map keyed by field name, not a fixed sequence of positions), adding an annotation no longer breaks the announcement. A node that doesn’t know a new annotation skips it; a node that receives an older schema simply doesn’t see the annotations that weren’t there yet. A plugin compiled against last month’s schema announces successfully to today’s agent, and nobody has to recompile.</p>
+<p>Missing annotations come back as zero values, which isn’t always the behavior we want for an older schema. So as we read schemas (they originate as Pkl, and cross into Go as JSON keyed by the same field names), we normalize the older shapes. The deprecated <code>AttachesTo</code> flag, for example, is folded into the newer <code>EdgeKind</code>:</p>
+<pre><code class="language-go">func (fh *FieldHint) UnmarshalJSON(data []byte) error {
+    type alias FieldHint
+    var raw alias
+    if err := json.Unmarshal(data, &amp;raw); err != nil {
+        return err
+    }
+    *fh = FieldHint(raw)
+    if fh.EdgeKind == &quot;&quot; { // schema predates EdgeKind
+        fh.EdgeKind = EdgeKindDefault
+        if fh.AttachesTo { // derive it from the deprecated annotation
+            fh.EdgeKind = EdgeKindAttachesTo
+        }
+    }
+    return nil
+}
+</code></pre>
+<p>A new annotation, which used to break every plugin’s startup, is now an additive change. Schema evolution becomes a local change on our side instead of a coordinated, fleet-wide recompile.</p>
+<p>Getting there did surface one bug in Ergo’s own length-prefix handling, which produced the same <code>malformed EDF</code> error for large custom-marshaled payloads; we <a href="https://github.com/ergo-services/ergo/pull/257">fixed it upstream</a>.</p>
+<h2 id="where-we-are-today">Where we are today</h2>
+<p>Three iterations in, the contract for a plugin author is still the same one we started with (implement <code>ResourcePlugin</code>), but everything underneath has been rebuilt for a world where plugins are independent binaries, evolving on a schema we can change without breaking anyone. Today they can be written by anyone (and increasingly by AI agents), deployed across hosts, and published and shared on <a href="https://hub.platform.engineering">formae/hub</a>, our plugin registry.</p>
+
+</article>
+</main>
+<footer class="site-footer"><div class="wrap bar">
+    <span>© 2026 Jeroen Soeters</span>
+    <span><a href="/feed.xml">RSS</a> · built with a tiny script, no trackers</span>
+  </div></footer>
+<script>document.getElementById('theme-toggle').addEventListener('click',function(){var d=document.documentElement;var t=d.dataset.theme==='dark'?'light':'dark';d.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}var m=document.getElementById('tc');if(m)m.content=t==='dark'?'#0e0e0f':'#fdfdfc'});</script>
+</body>
+</html>
