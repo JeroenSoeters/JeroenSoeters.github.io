@@ -49,9 +49,12 @@ Two build-time shortcodes are available in post bodies:
   instead, so drafts stay publishable. Drop the image in and rebuild.
 - `{{diagram: file.svg | caption}}` — inlines the SVG directly into the page.
 
-## Deploy (GitHub Pages, no CI)
+## Deploy (GitHub Actions)
 
-Pages is configured to serve the **`/docs` folder on `main`**:
-Repo → Settings → Pages → Source: *Deploy from a branch* → Branch: `main` `/docs`.
+Pages source is **GitHub Actions** (`.github/workflows/deploy.yml`). On every push to
+`main`, CI runs `npm ci && npm run build` and publishes `docs/` via
+`actions/deploy-pages`. A `concurrency: pages` group cancels a superseded in-flight
+run so rapid edits don't collide.
 
-Then the loop is: edit Markdown → `npm run build` → commit → push.
+`docs/` is **generated in CI and git-ignored** — don't commit it. The loop is just:
+edit Markdown → commit → push. (Run `npm run build` locally only to preview.)

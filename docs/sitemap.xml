@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://jeroensoeters.github.io/</loc></url>
-  <url><loc>https://jeroensoeters.github.io/towards-the-dark-factory/</loc></url>
-  <url><loc>https://jeroensoeters.github.io/formae-infrastructure-graph/</loc></url>
-  <url><loc>https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/</loc></url>
-  <url><loc>https://jeroensoeters.github.io/solving-infrastructure-drift-with-formae/</loc></url>
-  <url><loc>https://jeroensoeters.github.io/unlocking-concurrency-in-go/</loc></url>
-</urlset>

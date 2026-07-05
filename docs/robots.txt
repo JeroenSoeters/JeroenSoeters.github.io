@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://jeroensoeters.github.io/sitemap.xml
