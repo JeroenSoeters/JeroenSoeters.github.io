@@ -334,10 +334,7 @@ figure.placeholder .box::before { content: "🖼  "; }
     <h1>Targets, resources, resolvables and stacks: The formae infrastructure graph explained</h1>
     <p class="post-meta"><time datetime="2026-06-10">June 10, 2026</time> · 12 min read</p>
   </div>
-  <p>–</p>
-<p>Listen</p>
-<p>Share</p>
-<p>formae is built from a small set of composable concepts, and their power is in how they combine. The goal of this article is to make it easier to see the overall structure of a formae codebase.</p>
+  <p><a href="https://github.com/platform-engineering-labs/formae">formae</a> is built from a small set of composable concepts, and their power is in how they combine. The goal of this article is to make it easier to see the overall structure of a formae codebase.</p>
 <p>In infrastructure codebases, the problems that matter most tend to surface at the joins: the points where resources managed by one plugin depend on resources managed by another. These cross-plugin dependencies are the ones mainstream IaC tools handle worst, pushing you toward separate states, separate apply runs, or a dedicated mechanism just to carry a value across the boundary. formae models all of it as a single graph.</p>
 <p>That graph is built from just four concepts: resources, targets, resolvables, and stacks. We will look at each on its own first.</p>
 <h2 id="resources">Resources</h2>

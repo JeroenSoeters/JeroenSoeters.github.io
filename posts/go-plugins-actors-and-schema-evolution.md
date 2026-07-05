@@ -7,7 +7,7 @@ image: /assets/img/sdk-plugins-og.jpg
 banner: /assets/img/sdk-plugins.jpg
 ---
 
-Like most infrastructure-as-code (IaC) tools, formae has a plugin architecture. The formae agent knows how to schedule, queue, order, rate-limit, execute, and retry plugin operations; the actual API interaction lives in what we call **resource plugins**. This post is a short history of how our plugin SDK has evolved, the constraints that forced each change, and where we’ve landed today.
+Like most infrastructure-as-code (IaC) tools, [formae](https://github.com/platform-engineering-labs/formae) has a plugin architecture. The formae agent knows how to schedule, queue, order, rate-limit, execute, and retry plugin operations; the actual API interaction lives in what we call **resource plugins**. This post is a short history of how our plugin SDK has evolved, the constraints that forced each change, and where we’ve landed today.
 
 ## A deliberately tiny interface
 

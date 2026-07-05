@@ -334,7 +334,7 @@ figure.placeholder .box::before { content: "🖼  "; }
     <h1>Go plugins, actors, and schema evolution: Inside formae's plugin SDK</h1>
     <p class="post-meta"><time datetime="2026-06-01">June 1, 2026</time> · 11 min read</p>
   </div>
-  <p>Like most infrastructure-as-code (IaC) tools, formae has a plugin architecture. The formae agent knows how to schedule, queue, order, rate-limit, execute, and retry plugin operations; the actual API interaction lives in what we call <strong>resource plugins</strong>. This post is a short history of how our plugin SDK has evolved, the constraints that forced each change, and where we’ve landed today.</p>
+  <p>Like most infrastructure-as-code (IaC) tools, <a href="https://github.com/platform-engineering-labs/formae">formae</a> has a plugin architecture. The formae agent knows how to schedule, queue, order, rate-limit, execute, and retry plugin operations; the actual API interaction lives in what we call <strong>resource plugins</strong>. This post is a short history of how our plugin SDK has evolved, the constraints that forced each change, and where we’ve landed today.</p>
 <h2 id="a-deliberately-tiny-interface">A deliberately tiny interface</h2>
 <p>The formae resource plugin API is intentionally tiny. It has create/read/update/delete (CRUD) methods, a <code>Status</code> method for long-running (asynchronous) operations, a <code>List</code> method that our continuous discovery process uses, and a handful of configuration knobs. Here it is in full:</p>
 <pre><code class="language-go">type ResourcePlugin interface {

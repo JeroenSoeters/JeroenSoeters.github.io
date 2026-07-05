@@ -7,13 +7,7 @@ image: /assets/img/graph-og.jpg
 banner: /assets/img/graph-banner.jpg
 ---
 
---
-
-Listen
-
-Share
-
-formae is built from a small set of composable concepts, and their power is in how they combine. The goal of this article is to make it easier to see the overall structure of a formae codebase.
+[formae](https://github.com/platform-engineering-labs/formae) is built from a small set of composable concepts, and their power is in how they combine. The goal of this article is to make it easier to see the overall structure of a formae codebase.
 
 In infrastructure codebases, the problems that matter most tend to surface at the joins: the points where resources managed by one plugin depend on resources managed by another. These cross-plugin dependencies are the ones mainstream IaC tools handle worst, pushing you toward separate states, separate apply runs, or a dedicated mechanism just to carry a value across the boundary. formae models all of it as a single graph.
 
