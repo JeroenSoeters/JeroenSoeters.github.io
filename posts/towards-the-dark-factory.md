@@ -74,7 +74,7 @@ We put a lot of effort into the triage step. Codex flags everything that could t
 The one place we don't let that judgment soften anything is correctness and security. A finding there can't be waved away with a bare "rejected"; it clears only with a real fix, a concrete argument that it doesn't apply, or a human's sign-off. The same clanker wrote the code and decides which findings to honor, so it can't be allowed to quietly bury a serious finding about its own work.
 
 
-## Meta-clanking
+## Clankers all the way down
 
 With all of this in place, I kept finding myself in the same situation. I'd be deep in a Claude Code session on some feature, for example a customer demo, and realize I needed a small change somewhere else, support for a new resource type, or a bugfix in a common library. So I'd ask Claude to file the ticket (Linear has an excellent MCP, which we've wrapped in a set of custom skills), assign Clanker, review the design it produced, move it to "Implementation," assign Clanker again, and approve the PR once I was confident it solved the problem.
 
