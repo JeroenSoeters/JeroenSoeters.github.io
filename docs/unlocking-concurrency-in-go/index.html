@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdfdfc">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0e0f">
+<title>Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo — Jeroen Soeters</title>
+<meta name="description" content="A practical guide to the actor model in Go with the Ergo framework — where actors came from, why they beat shared-state threading, and a worked prime-factoring example.">
+<meta name="author" content="Jeroen Soeters">
+<link rel="canonical" href="https://jeroensoeters.github.io/unlocking-concurrency-in-go/">
+<link rel="alternate" type="application/rss+xml" title="Jeroen Soeters" href="/feed.xml">
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Jeroen Soeters">
+<meta property="og:title" content="Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo">
+<meta property="og:description" content="A practical guide to the actor model in Go with the Ergo framework — where actors came from, why they beat shared-state threading, and a worked prime-factoring example.">
+<meta property="og:url" content="https://jeroensoeters.github.io/unlocking-concurrency-in-go/">
+<meta property="og:image" content="https://jeroensoeters.github.io/assets/img/concurrency-go-og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo">
+<meta name="twitter:description" content="A practical guide to the actor model in Go with the Ergo framework — where actors came from, why they beat shared-state threading, and a worked prime-factoring example.">
+<meta name="twitter:image" content="https://jeroensoeters.github.io/assets/img/concurrency-go-og.jpg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◼</text></svg>">
+<script>(function(){var t;try{t=localStorage.getItem('theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;var m=document.createElement('meta');m.name='theme-color';m.id='tc';m.content=t==='dark'?'#0e0e0f':'#fdfdfc';document.head.appendChild(m)})();</script>
+<style>/* ---------------------------------------------------------------------------
+   Design tokens. Light is the default; dark applies via prefers-color-scheme
+   (no-JS users) OR the [data-theme] attribute set by the toggle (overrides).
+   --------------------------------------------------------------------------- */
+:root {
+  --bg:        #fdfdfc;
+  --fg:        #1a1a1a;
+  --muted:     #666666;
+  --faint:     #8a8a8a;
+  --link:      #0f766e;
+  --link-hover:#0b5a54;
+  --border:    #e6e6e3;
+  --code-bg:   #f4f4f1;
+  --panel:     #ffffff;
+  --sel:       #cdeee8;
+  --maxw:      42rem;   /* ~66ch measure */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #0e0e0f;
+    --fg:        #e8e8e6;
+    --muted:     #a0a0a0;
+    --faint:     #6f6f70;
+    --link:      #5eead4;
+    --link-hover:#99f6e4;
+    --border:    #262628;
+    --code-bg:   #1a1a1c;
+    --panel:     #161618;
+    --sel:       #134e4a;
+  }
+}
+
+/* Explicit toggle wins over the OS preference. */
+[data-theme="light"] {
+  --bg:#fdfdfc; --fg:#1a1a1a; --muted:#666; --faint:#8a8a8a;
+  --link:#0f766e; --link-hover:#0b5a54; --border:#e6e6e3;
+  --code-bg:#f4f4f1; --panel:#ffffff; --sel:#cdeee8;
+}
+[data-theme="dark"] {
+  --bg:#0e0e0f; --fg:#e8e8e6; --muted:#a0a0a0; --faint:#6f6f70;
+  --link:#5eead4; --link-hover:#99f6e4; --border:#262628;
+  --code-bg:#1a1a1c; --panel:#161618; --sel:#134e4a;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  font-size: 18px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  line-height: 1.65;
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+::selection { background: var(--sel); }
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Header / footer
+   --------------------------------------------------------------------------- */
+.site-header {
+  padding: 2.5rem 0 1.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2.5rem;
+}
+.site-header .bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.site-title {
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.site-title a { color: var(--fg); text-decoration: none; }
+.site-title a:hover { color: var(--link); }
+.tagline {
+  color: var(--muted);
+  margin: 0.4rem 0 0;
+  font-size: 0.95rem;
+}
+
+/* Theme toggle — the only interactive JS on the page. */
+.theme-toggle {
+  flex: 0 0 auto;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  width: 2.1rem;
+  height: 2.1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.theme-toggle:hover { color: var(--fg); border-color: var(--faint); }
+.theme-toggle .icon-dark  { display: none; }
+[data-theme="dark"] .theme-toggle .icon-dark  { display: inline; }
+[data-theme="dark"] .theme-toggle .icon-light { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .icon-dark  { display: inline; }
+  :root:not([data-theme="light"]) .theme-toggle .icon-light { display: none; }
+}
+
+.site-footer {
+  margin-top: 4rem;
+  padding: 2rem 0 3rem;
+  border-top: 1px solid var(--border);
+  color: var(--faint);
+  font-size: 0.85rem;
+}
+.site-footer .bar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.site-footer a { color: var(--muted); }
+
+/* ---------------------------------------------------------------------------
+   Home / post list
+   --------------------------------------------------------------------------- */
+.post-list { list-style: none; padding: 0; margin: 0; }
+.post-list li { padding: 1.1rem 0; border-bottom: 1px solid var(--border); }
+.post-list li:last-child { border-bottom: 0; }
+.post-list time { color: var(--faint); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.post-list a { display: block; font-size: 1.15rem; font-weight: 600; text-decoration: none; margin-top: 0.15rem; letter-spacing: -0.01em; }
+.post-list p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.95rem; }
+
+/* ---------------------------------------------------------------------------
+   Article typography
+   --------------------------------------------------------------------------- */
+/* Banner hero at the top of a post */
+figure.hero { margin: 0 0 2rem; }
+figure.hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.post-header { margin-bottom: 2.5rem; }
+.post-header h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.6rem;
+  font-weight: 700;
+}
+.post-meta { color: var(--faint); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+article { font-size: 1.05rem; }
+article p { margin: 1.35rem 0; }
+article h2 {
+  font-size: 1.4rem;
+  letter-spacing: -0.015em;
+  margin: 2.75rem 0 1rem;
+  line-height: 1.25;
+}
+article h3 {
+  font-size: 1.12rem;
+  margin: 2rem 0 0.75rem;
+  line-height: 1.3;
+}
+article a { color: var(--link); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--link) 35%, transparent); transition: border-color 0.15s ease, color 0.15s ease; }
+article a:hover { color: var(--link-hover); border-bottom-color: var(--link); }
+
+article ul, article ol { padding-left: 1.4rem; }
+article li { margin: 0.4rem 0; }
+article li::marker { color: var(--faint); }
+
+article strong { font-weight: 650; }
+
+article hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 3rem auto;
+  width: 100%;
+}
+
+/* Inline + block code */
+code {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+}
+pre {
+  background: var(--code-bg);
+  padding: 1rem 1.1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  line-height: 1.5;
+}
+pre code { background: none; padding: 0; font-size: 0.85rem; }
+
+/* Pull-quote / aside blockquotes */
+blockquote {
+  margin: 1.75rem 0;
+  padding: 0.25rem 0 0.25rem 1.1rem;
+  border-left: 3px solid var(--link);
+  color: var(--muted);
+  font-style: italic;
+}
+blockquote p { margin: 0.5rem 0; }
+
+/* ---------------------------------------------------------------------------
+   Figures: screenshots + inline diagram
+   --------------------------------------------------------------------------- */
+figure {
+  margin: 2.25rem 0;
+}
+figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+figcaption {
+  margin-top: 0.6rem;
+  color: var(--faint);
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.45;
+}
+
+/* The Agent Bridge diagram is a light-toned vector; frame it on a light panel
+   so it reads intentionally in both themes. */
+figure.diagram {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+figure.diagram svg { display: block; width: 100%; height: auto; max-width: 460px; margin: 0 auto; }
+
+/* Placeholder shown until a real screenshot is dropped into assets/img/ */
+figure.placeholder .box {
+  border: 1px dashed var(--faint);
+  border-radius: 8px;
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  color: var(--faint);
+  font-size: 0.85rem;
+  background: var(--code-bg);
+}
+figure.placeholder .box::before { content: "🖼  "; }
+
+/* ---------------------------------------------------------------------------
+   Responsive
+   --------------------------------------------------------------------------- */
+@media (max-width: 32rem) {
+  html { font-size: 17px; }
+  .post-header h1 { font-size: 1.65rem; }
+  .site-header { padding-top: 1.75rem; }
+}
+</style>
+</head>
+<body>
+<header class="site-header"><div class="wrap"><div class="bar">
+    <div>
+      <p class="site-title"><a href="/">Jeroen Soeters</a></p>
+      <p class="tagline">Notes on software development, infrastructure, and AI.</p>
+    </div>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <span class="icon-light" aria-hidden="true">☾</span><span class="icon-dark" aria-hidden="true">☀</span>
+    </button>
+  </div></div></header>
+<main class="wrap">
+<article>
+  <figure class="hero"><picture><source type="image/webp" srcset="/assets/img/concurrency-go.webp"><img src="/assets/img/concurrency-go.jpg" alt="Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo" fetchpriority="high" decoding="async"></picture></figure>
+  <div class="post-header">
+    <h1>Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo</h1>
+    <p class="post-meta"><time datetime="2025-05-15">May 15, 2025</time> · 9 min read</p>
+  </div>
+  <p>Hollywood stars in software engineering, you think? No, it’s not the actors you see in TV shows we’ll cover in this article. These are the actors the late Carl Hewitt coined in the early 70s when he was researching how to program highly parallel computers.</p>
+<h2 id="the-actor-model-a-different-paradigm-for-concurrent-computation">The Actor Model: A Different Paradigm for Concurrent Computation</h2>
+<p>The actor model is a paradigm for concurrent computing. It’s an alternative to traditional threading/locking, which is the prevailing way of writing concurrent code in C++ or Java, or Communicating Sequential Processes (CSP), which forms the basis of Go’s native concurrency primitives: goroutines and channels.</p>
+<p>In the actor model, everything is an actor. As E.O. Wilson famously said, “One ant is no ant.” The same holds for actors: “One actor is no actor.” Actors come in systems, and because they come in systems, they need addresses, so they can send messages to each other. Of course, an actor can also send a message to itself, which is how recursion is implemented in the actor model.</p>
+<p>As the fundamental unit of computation, an actor encompasses three things:</p>
+<ul>
+<li>Processing: the actor needs to be able to get something done</li>
+<li>Storage: actors need to be able to remember things</li>
+<li>Communication: actors need to be able to communicate with one another</li>
+</ul>
+<p>The behavior and capabilities of actors are defined by a fundamental set of axioms, primarily articulated by Hewitt, Bishop, and Steiger. When an actor receives a message, it can perform three fundamental actions:</p>
+<ol>
+<li>It can create more actors, allowing the system to dynamically expand, delegate tasks, and form hierarchical structures. For example, a <code>ShoppingCartActor</code> might create subordinate <code>PaymentActor</code> and <code>ShippingActor</code> instances to handle specific parts of an order process. This capability is essential for building systems that adapt their resource allocation and structure in response to varying workloads or events. This axiom is what enables advanced fault-handling strategies by creating so-called supervision hierarchies on which we’ll talk more in a future blog post.</li>
+<li>It can send messages to other actors of which it has addresses: this is the exclusive mechanism for inter-actor communication and coordination. This axiom underscores the message-centric nature of the actor model.</li>
+<li>It can designate the behavior to be used for the next message it receives. In essence this means it can change its internal state and consequently how it responds to future messages based on the sequence of messages it has already processed. A <code>DepositAccountActor</code> with a balance of $5, after receiving a deposit message of $7, will handle the next message with a balance of $12.</li>
+</ol>
+<h2 id="actors-oop-as-it-was-meant-to-be">Actors: OOP as it was meant to be?</h2>
+<p>Ironically, this is not very dissimilar to what Alan Kay, the inventor of Object-Oriented programming (OOP), had in mind when he coined the term. His core principles for OOP included:</p>
+<ul>
+<li>Messaging: objects must interact by sending and receiving messages</li>
+<li>Encapsulation of state: each object is solely responsible for its own data, which must be shielded from any external interference</li>
+<li>Extreme Late-Binding: the decision which piece of code to execute in response to a received message should be deferred until the message is actually received at runtime (parametric polymorphism).</li>
+</ul>
+<p>He regretted the term “objects” and argued that true object-oriented programming focuses on inter-communicating entities (objects) that interact through messages, rather than the objects themselves. He famously said: “I invented the term Object-Oriented, and I cant tell you I did not have C++ in mind”.</p>
+<h2 id="erlang-the-battle-tested-actor-powerhouse">Erlang: The Battle-Tested Actor Powerhouse</h2>
+<p>No discussion of the actor model is complete without acknowledging Erlang, a programming language and runtime system where actor-like principles are not just a library feature, but the very foundation of its concurrency model.</p>
+<p>Erlang was developed at Ericsson in the 1980s to build highly available, massively concurrent, and fault-tolerant telecommunications systems, such as telephone switches. The primary design goals were concurrency, distribution, soft real-time performance, and continuous operation. These requirements naturally led to an architecture closely resembling the actor model.</p>
+<h2 id="get-jeroen-soeterss-stories-in-your-inbox">Get Jeroen Soeters’s stories in your inbox</h2>
+<p>Join Medium for free to get updates from this writer.</p>
+<p>Remember me for faster sign in</p>
+<p>Erlang’s decades of success in building some of the world’s most reliable and scalable concurrent systems (e.g., WhatsApp, Ericsson’s AXD301 switch) has profoundly influenced many subsequent actor model implementations in other languages and platforms, including Akka for the JVM, Orleans <a href="http://for.NET">for.NET</a>, and, by extension, Go’s Ergo framework.</p>
+<h2 id="ergo-actors-for-the-next-generation-of-infrastructure-tooling">Ergo: Actors for the Next Generation of Infrastructure Tooling</h2>
+<p>At Platform Engineering Labs, we are building the next generation of infrastructure tooling. Although we have our fair share of Erlang aficionados among our colleagues, we have adopted Go as our primary programming language. Go has become the leading language for modern infrastructure tooling and cloud-native development. A vast majority of CNCF projects, which form the bedrock of the cloud-native ecosystem, are all written in Go. This quickly led us to the <a href="https://github.com/ergo-services/ergo">Ergo Framework</a>. Ergo aims to bring the power and elegance of Erlang/OTP’s actor-based design patterns to the Go programming language. It provides a robust platform for building scalable, fault-tolerant, and distributed applications.</p>
+<p>Ergo is heavily inspired by Erlang. It is built upon lightweight processes, which are themselves implemented using Go’s native goroutines. A notable characteristic is its “zero external dependencies” philosophy, relying solely on the Go standard library. Ergo offers a rich set of features to facilitate actor-based development. We’ll walk through the basic ones with a simple task dispatcher example. In this example, we will create a <code>TaskDispatcherActor</code>, which dynamically spins up a pool of <code>Worker</code> actors to calculate prime numbers within a given range. We divide the range across the pool of workers, and each worker will report the primes they found to a <code>ResultsCollector</code> actor.</p>
+<p>Sounds simple enough? Let’s create our first actor. In Ergo, we create an actor by embedding the<code>Actor</code> type in a struct.</p>
+<pre><code class="language-go">type TaskDispatcher struct {
+  act.Actor
+  numberOfWorkers int
+}
+</code></pre>
+<p>You interact with the actor via the <code>ActorBehavior</code> interface, which <code>Actor</code> implements. All methods in this interface are optional. The first one we implement for our <code>TaskDispatcher</code> actor is the <code>Init(args …any) error</code> method. This method runs at the start of process initialization, and allows us to pass in arguments and set up some initial state. It is important to note that during this initialization, functionality like creating actors or sending messages to other actors is not yet available to us. We can only do this later in the lifecycle upon receiving messages. Remember those axioms? All we do in this initialization is parse the number of workers we want the dispatcher to create from the arguments and store this in the actor state.</p>
+<pre><code class="language-go">func (td *TaskDispatcher) Init(args …any) error {
+  if (len(args) &gt; 0) {
+    td.numberOfWorkers = args[0].(int)
+  } else {
+    // default number of workers to 4
+    td.numberOfWorkers = 4
+  }
+  return nil
+}
+</code></pre>
+<p>Now let’s define some messages for our actors to pass around. We define a message <code>CalculatePrimes</code> with a range and another message <code>PrimesFound</code> to pass along the results to our <code>ResultsCollector</code> actor.</p>
+<pre><code class="language-go">type CalculatePrimes struct {
+  RangeStart int
+  RangeEnd int
+}
+
+type PrimesFound struct {
+  Primes []int
+}
+</code></pre>
+<p>The next method we have to implement is the <code>HandleMessage(from gen.PID, message any) error</code> method. Our <code>TaskDispatcher</code> actor only receives a single type of message, the <code>CalculatePrimes</code> message. When it receives this message, the <code>TaskDispatcher</code> first spawns the requested number of worker actors. It uses the <code>Spawn(factory ProcessFactory, options ProcessOptions, args …any) (gen.PID, error)</code> method of the <code>Process</code> interface, which <code>Actor</code> embeds. The Spawn method returns a <code>PID</code>. <code>PID</code> stands for process identifier, and it represents the address of the actor that we need to be able to send messages to it. We divide the requested range among the workers and send each worker a <code>CalculatePrimes</code> message for the assigned range.</p>
+<pre><code class="language-go">func (td *TaskDispatcher) HandleMessage(from gen.PID, message any) error {
+  switch msg := message.(type) {
+  case CalculatePrimes:
+    for i := range td.numberOfWorkers {
+      rangeSize := (msg.RangeEnd - msg.RangeStart + 1) / td.numberOfWorkers
+      workerRangeStart := msg.RangeStart + i*rangeSize
+      workerRangeEnd := workerRangeStart + rangeSize - 1
+
+      pid, err := td.Spawn(
+        func() gen.ProcessBehavior {
+          return &amp;Worker{}
+        }, gen.ProcessOptions{})
+      if err != nil {
+        log.Fatalf(&quot;failed to spawn worker actor: %v&quot;, err)
+      }
+
+      td.Send(pid, CalculatePrimes{workerRangeStart, workerRangeEnd})
+      if err != nil {
+        log.Fatalf(&quot;failed to send messag to worker actor: %v&quot;, err)
+      }
+    }
+  default:
+    td.Log().Error(&quot;Unknown message: %v&quot;, msg)
+  }
+  return nil
+}
+</code></pre>
+<p>Now we have to implement <code>HandleMessage(…)</code> for the Worker actor. The worker actor finds the primes in the range and forwards the results to the <code>ResultsCollector</code> actor. Note that the Worker actors do not know the <code>PID</code> of the <code>ResultsCollector</code>. In addition to Spawn, Ergo provides another method to create new actors: <code>SpawnRegister(register gen.Atom, factory ProcessFactory, options ProcessOptions, args …any) (gen.PID, error)</code>. This allows us to associate a name with an actor; other actors can send messages using this name as the address.</p>
+<p>Actors can terminate themselves by returning a non-nil error from the handler. Here, we return the <code>gen.TerminateReasonNormal</code> error type for a normal shutdown scenario after the worker is done processing.</p>
+<pre><code class="language-go">func (w *Worker) HandleMessage(from gen.PID, message any) error {
+  switch msg := message.(type) {
+  case CalculatePrimes:
+    primes := findPrimesInRange(msg.RangeStart, msg.RangeEnd)
+    err := w.Send(gen.Atom(&quot;ResultsCollector&quot;), PrimesFound{primes})
+    if err != nil {
+      log.Fatalf(&quot;failed to send messag to worker actor: %v&quot;, err)
+    }
+    return gen.TerminateReasonNormal
+  default:
+    w.Log().Error(&quot;Unknown message: %v&quot;, msg)
+  }
+  return nil
+}
+</code></pre>
+<p>Next, we implement <code>HandleMessage(…)</code> of the <code>ResultsCollector</code> actor, which waits for all results to come in and prints them to the screen.</p>
+<pre><code class="language-go">func (rc *ResultsCollector) HandleMessage(from gen.PID, message any) error {
+  switch msg := message.(type) {
+  case PrimesFound:
+    rc.results = append(rc.results, msg.Primes…)
+    rc.numberOfResults = rc.numberOfResults + 1
+    if rc.numberOfResults == rc.expectedNumberOfResults {
+      fmt.Printf(&quot;All results collected. Found the following primes: %v&quot;, msg.Primes)
+    }
+  default:
+    rc.Log().Error(&quot;Unknown message: %v&quot;, msg)
+  }
+  return nil
+}
+</code></pre>
+<p>To create our initial actor, we have to create an Ergo node. The node is the core service in Ergo that hosts the actor runtime. Each node has a name that consists of two parts: the name of the node and the network interface the node binds to.</p>
+<p>We create a node using the <code>Start(name gen.Atom, options gen.NodeOptions, frameworkVersion gen.Version) (gen.Node, error)</code> method. In the main goroutine, we create our <code>TaskDispatcher</code> actor as well as the <code>ResultCollector</code> actor and send the <code>CalculatePrimes</code> message to the <code>TaskDispatcher</code> to start our example.</p>
+<pre><code class="language-go">func main() {
+  name := gen.Atom(&quot;example@localhost&quot;)
+  node, err := ergo.StartNode(name, gen.NodeOptions{})
+  if err != nil {
+    log.Fatalf(&quot;Failed to start the Ergo node: %v&quot;, err)
+  }
+  tdPid, err := node.Spawn(factoryTaskDispatcher, gen.ProcessOptions{}, 5)
+  if err != nil {
+    log.Fatalf(&quot;Failed to spawn the task dispatcher: %v&quot;, err)
+  }
+  _, err = node.SpawnRegister(gen.Atom(&quot;ResultsCollector&quot;), func() gen.ProcessBehavior { return &amp;ResultsCollector{} }, gen.ProcessOptions{}, 5)
+  if err != nil {
+    log.Fatalf(&quot;Failed to spawn the task dispatcher: %v&quot;, err)
+  }
+  node.Send(tdPid, CalculatePrimes{0, 100})
+  node.Wait()
+}
+</code></pre>
+<p>The full example code is available on <a href="https://github.com/JeroenSoeters/erg-task-dispatcher/tree/master">GitHub</a>.</p>
+<p>In a future blog post, we will dive deep into Ergo’s advanced fault-handling strategies using supervision hierarchies.</p>
+
+</article>
+</main>
+<footer class="site-footer"><div class="wrap bar">
+    <span>© 2026 Jeroen Soeters</span>
+    <span><a href="/feed.xml">RSS</a> · built with a tiny script, no trackers</span>
+  </div></footer>
+<script>document.getElementById('theme-toggle').addEventListener('click',function(){var d=document.documentElement;var t=d.dataset.theme==='dark'?'light':'dark';d.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}var m=document.getElementById('tc');if(m)m.content=t==='dark'?'#0e0e0f':'#fdfdfc'});</script>
+</body>
+</html>

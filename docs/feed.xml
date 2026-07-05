@@ -11,4 +11,11 @@
       <pubDate>Sat, 04 Jul 2026 09:00:00 GMT</pubDate>
       <description>How we built &quot;clanker infrastructure&quot; — autonomous, network-isolated AI agents that pick up tickets, design, implement, and ship PRs through a locked-down container factory provisioned with formae itself.</description>
     </item>
+    <item>
+      <title>Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo</title>
+      <link>https://jeroensoeters.github.io/unlocking-concurrency-in-go/</link>
+      <guid>https://jeroensoeters.github.io/unlocking-concurrency-in-go/</guid>
+      <pubDate>Thu, 15 May 2025 09:00:00 GMT</pubDate>
+      <description>A practical guide to the actor model in Go with the Ergo framework — where actors came from, why they beat shared-state threading, and a worked prime-factoring example.</description>
+    </item>
 </channel></rss>

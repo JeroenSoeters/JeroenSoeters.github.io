@@ -51,7 +51,8 @@ function parseFrontMatter(raw) {
   for (const line of m[1].split("\n")) {
     const i = line.indexOf(":");
     if (i === -1) continue;
-    data[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+    const val = line.slice(i + 1).trim().replace(/^(["'])(.*)\1$/, "$2");
+    data[line.slice(0, i).trim()] = val;
   }
   return { data, body: raw.slice(m[0].length) };
 }
