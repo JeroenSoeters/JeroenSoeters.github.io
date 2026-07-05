@@ -12,6 +12,13 @@
       <description>How we built &quot;clanker infrastructure&quot; — autonomous, network-isolated AI agents that pick up tickets, design, implement, and ship PRs through a locked-down container factory provisioned with formae itself.</description>
     </item>
     <item>
+      <title>Solving Infrastructure Drift With formae</title>
+      <link>https://jeroensoeters.github.io/solving-infrastructure-drift-with-formae/</link>
+      <guid>https://jeroensoeters.github.io/solving-infrastructure-drift-with-formae/</guid>
+      <pubDate>Thu, 11 Dec 2025 09:00:00 GMT</pubDate>
+      <description>When your infrastructure code is up to date, there is no drift. How formae detects out-of-band changes and lets you reconcile — or absorb — them, instead of fighting drift.</description>
+    </item>
+    <item>
       <title>Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo</title>
       <link>https://jeroensoeters.github.io/unlocking-concurrency-in-go/</link>
       <guid>https://jeroensoeters.github.io/unlocking-concurrency-in-go/</guid>
