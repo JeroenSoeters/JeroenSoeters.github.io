@@ -1,5 +1,5 @@
 ---
-title: "Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo"
+title: "Unlocking concurrency in Go: A practical guide to the actor model with Ergo"
 slug: unlocking-concurrency-in-go
 date: 2025-05-15
 description: A practical guide to the actor model in Go with the Ergo framework — where actors came from, why they beat shared-state threading, and a worked prime-factoring example.
@@ -42,12 +42,6 @@ He regretted the term “objects” and argued that true object-oriented program
 No discussion of the actor model is complete without acknowledging Erlang, a programming language and runtime system where actor-like principles are not just a library feature, but the very foundation of its concurrency model.
 
 Erlang was developed at Ericsson in the 1980s to build highly available, massively concurrent, and fault-tolerant telecommunications systems, such as telephone switches. The primary design goals were concurrency, distribution, soft real-time performance, and continuous operation. These requirements naturally led to an architecture closely resembling the actor model.
-
-## Get Jeroen Soeters’s stories in your inbox
-
-Join Medium for free to get updates from this writer.
-
-Remember me for faster sign in
 
 Erlang’s decades of success in building some of the world’s most reliable and scalable concurrent systems (e.g., WhatsApp, Ericsson’s AXD301 switch) has profoundly influenced many subsequent actor model implementations in other languages and platforms, including Akka for the JVM, Orleans for.NET, and, by extension, Go’s Ergo framework.
 

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdfdfc">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0e0f">
-<title>Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo — Jeroen Soeters</title>
+<title>Unlocking concurrency in Go: A practical guide to the actor model with Ergo — Jeroen Soeters</title>
 <meta name="description" content="A practical guide to the actor model in Go with the Ergo framework — where actors came from, why they beat shared-state threading, and a worked prime-factoring example.">
 <meta name="author" content="Jeroen Soeters">
 <link rel="canonical" href="https://jeroensoeters.github.io/unlocking-concurrency-in-go/">
@@ -13,7 +13,7 @@
 <!-- Open Graph -->
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Jeroen Soeters">
-<meta property="og:title" content="Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo">
+<meta property="og:title" content="Unlocking concurrency in Go: A practical guide to the actor model with Ergo">
 <meta property="og:description" content="A practical guide to the actor model in Go with the Ergo framework — where actors came from, why they beat shared-state threading, and a worked prime-factoring example.">
 <meta property="og:url" content="https://jeroensoeters.github.io/unlocking-concurrency-in-go/">
 <meta property="og:image" content="https://jeroensoeters.github.io/assets/img/concurrency-go-og.jpg">
@@ -21,7 +21,7 @@
 <meta property="og:image:height" content="630">
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo">
+<meta name="twitter:title" content="Unlocking concurrency in Go: A practical guide to the actor model with Ergo">
 <meta name="twitter:description" content="A practical guide to the actor model in Go with the Ergo framework — where actors came from, why they beat shared-state threading, and a worked prime-factoring example.">
 <meta name="twitter:image" content="https://jeroensoeters.github.io/assets/img/concurrency-go-og.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◼</text></svg>">
@@ -329,9 +329,9 @@ figure.placeholder .box::before { content: "🖼  "; }
   </div></div></header>
 <main class="wrap">
 <article>
-  <figure class="hero"><picture><source type="image/webp" srcset="/assets/img/concurrency-go.webp"><img src="/assets/img/concurrency-go.jpg" alt="Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo" fetchpriority="high" decoding="async"></picture></figure>
+  <figure class="hero"><picture><source type="image/webp" srcset="/assets/img/concurrency-go.webp"><img src="/assets/img/concurrency-go.jpg" alt="Unlocking concurrency in Go: A practical guide to the actor model with Ergo" fetchpriority="high" decoding="async"></picture></figure>
   <div class="post-header">
-    <h1>Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo</h1>
+    <h1>Unlocking concurrency in Go: A practical guide to the actor model with Ergo</h1>
     <p class="post-meta"><time datetime="2025-05-15">May 15, 2025</time> · 9 min read</p>
   </div>
   <p>Hollywood stars in software engineering, you think? No, it’s not the actors you see in TV shows we’ll cover in this article. These are the actors the late Carl Hewitt coined in the early 70s when he was researching how to program highly parallel computers.</p>
@@ -361,9 +361,6 @@ figure.placeholder .box::before { content: "🖼  "; }
 <h2 id="erlang-the-battle-tested-actor-powerhouse">Erlang: The Battle-Tested Actor Powerhouse</h2>
 <p>No discussion of the actor model is complete without acknowledging Erlang, a programming language and runtime system where actor-like principles are not just a library feature, but the very foundation of its concurrency model.</p>
 <p>Erlang was developed at Ericsson in the 1980s to build highly available, massively concurrent, and fault-tolerant telecommunications systems, such as telephone switches. The primary design goals were concurrency, distribution, soft real-time performance, and continuous operation. These requirements naturally led to an architecture closely resembling the actor model.</p>
-<h2 id="get-jeroen-soeterss-stories-in-your-inbox">Get Jeroen Soeters’s stories in your inbox</h2>
-<p>Join Medium for free to get updates from this writer.</p>
-<p>Remember me for faster sign in</p>
 <p>Erlang’s decades of success in building some of the world’s most reliable and scalable concurrent systems (e.g., WhatsApp, Ericsson’s AXD301 switch) has profoundly influenced many subsequent actor model implementations in other languages and platforms, including Akka for the JVM, Orleans <a href="http://for.NET">for.NET</a>, and, by extension, Go’s Ergo framework.</p>
 <h2 id="ergo-actors-for-the-next-generation-of-infrastructure-tooling">Ergo: Actors for the Next Generation of Infrastructure Tooling</h2>
 <p>At Platform Engineering Labs, we are building the next generation of infrastructure tooling. Although we have our fair share of Erlang aficionados among our colleagues, we have adopted Go as our primary programming language. Go has become the leading language for modern infrastructure tooling and cloud-native development. A vast majority of CNCF projects, which form the bedrock of the cloud-native ecosystem, are all written in Go. This quickly led us to the <a href="https://github.com/ergo-services/ergo">Ergo Framework</a>. Ergo aims to bring the power and elegance of Erlang/OTP’s actor-based design patterns to the Go programming language. It provides a robust platform for building scalable, fault-tolerant, and distributed applications.</p>

@@ -12,21 +12,21 @@
       <description>How we built &quot;clanker infrastructure&quot; — autonomous, network-isolated AI agents that pick up tickets, design, implement, and ship PRs through a locked-down container factory provisioned with formae itself.</description>
     </item>
     <item>
-      <title>Go plugins, actors, and schema evolution: inside formae's plugin SDK</title>
+      <title>Go plugins, actors, and schema evolution: Inside formae's plugin SDK</title>
       <link>https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/</link>
       <guid>https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/</guid>
       <pubDate>Mon, 01 Jun 2026 09:00:00 GMT</pubDate>
       <description>How formae's plugin SDK evolved across three iterations — from an in-process actor system to independent, hot-swappable plugin binaries on a schema we can change without breaking the fleet.</description>
     </item>
     <item>
-      <title>Solving Infrastructure Drift With formae</title>
+      <title>Solving infrastructure drift with formae</title>
       <link>https://jeroensoeters.github.io/solving-infrastructure-drift-with-formae/</link>
       <guid>https://jeroensoeters.github.io/solving-infrastructure-drift-with-formae/</guid>
       <pubDate>Thu, 11 Dec 2025 09:00:00 GMT</pubDate>
       <description>When your infrastructure code is up to date, there is no drift. How formae detects out-of-band changes and lets you reconcile — or absorb — them, instead of fighting drift.</description>
     </item>
     <item>
-      <title>Unlocking Concurrency in Go: A Practical Guide to the Actor Model with Ergo</title>
+      <title>Unlocking concurrency in Go: A practical guide to the actor model with Ergo</title>
       <link>https://jeroensoeters.github.io/unlocking-concurrency-in-go/</link>
       <guid>https://jeroensoeters.github.io/unlocking-concurrency-in-go/</guid>
       <pubDate>Thu, 15 May 2025 09:00:00 GMT</pubDate>

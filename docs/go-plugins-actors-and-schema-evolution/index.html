@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdfdfc">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0e0f">
-<title>Go plugins, actors, and schema evolution: inside formae's plugin SDK — Jeroen Soeters</title>
+<title>Go plugins, actors, and schema evolution: Inside formae's plugin SDK — Jeroen Soeters</title>
 <meta name="description" content="How formae's plugin SDK evolved across three iterations — from an in-process actor system to independent, hot-swappable plugin binaries on a schema we can change without breaking the fleet.">
 <meta name="author" content="Jeroen Soeters">
 <link rel="canonical" href="https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/">
@@ -13,7 +13,7 @@
 <!-- Open Graph -->
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Jeroen Soeters">
-<meta property="og:title" content="Go plugins, actors, and schema evolution: inside formae's plugin SDK">
+<meta property="og:title" content="Go plugins, actors, and schema evolution: Inside formae's plugin SDK">
 <meta property="og:description" content="How formae's plugin SDK evolved across three iterations — from an in-process actor system to independent, hot-swappable plugin binaries on a schema we can change without breaking the fleet.">
 <meta property="og:url" content="https://jeroensoeters.github.io/go-plugins-actors-and-schema-evolution/">
 <meta property="og:image" content="https://jeroensoeters.github.io/assets/img/sdk-plugins-og.jpg">
@@ -21,7 +21,7 @@
 <meta property="og:image:height" content="630">
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Go plugins, actors, and schema evolution: inside formae's plugin SDK">
+<meta name="twitter:title" content="Go plugins, actors, and schema evolution: Inside formae's plugin SDK">
 <meta name="twitter:description" content="How formae's plugin SDK evolved across three iterations — from an in-process actor system to independent, hot-swappable plugin binaries on a schema we can change without breaking the fleet.">
 <meta name="twitter:image" content="https://jeroensoeters.github.io/assets/img/sdk-plugins-og.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◼</text></svg>">
@@ -329,9 +329,9 @@ figure.placeholder .box::before { content: "🖼  "; }
   </div></div></header>
 <main class="wrap">
 <article>
-  <figure class="hero"><picture><source type="image/webp" srcset="/assets/img/sdk-plugins.webp"><img src="/assets/img/sdk-plugins.jpg" alt="Go plugins, actors, and schema evolution: inside formae's plugin SDK" fetchpriority="high" decoding="async"></picture></figure>
+  <figure class="hero"><picture><source type="image/webp" srcset="/assets/img/sdk-plugins.webp"><img src="/assets/img/sdk-plugins.jpg" alt="Go plugins, actors, and schema evolution: Inside formae's plugin SDK" fetchpriority="high" decoding="async"></picture></figure>
   <div class="post-header">
-    <h1>Go plugins, actors, and schema evolution: inside formae's plugin SDK</h1>
+    <h1>Go plugins, actors, and schema evolution: Inside formae's plugin SDK</h1>
     <p class="post-meta"><time datetime="2026-06-01">June 1, 2026</time> · 11 min read</p>
   </div>
   <p>Like most infrastructure-as-code (IaC) tools, <strong>formae</strong> has a plugin architecture. The <strong>formae</strong> agent knows how to schedule, queue, order, rate-limit, execute, and retry plugin operations; the actual API interaction lives in what we call <strong>resource plugins</strong>. This post is a short history of how our plugin SDK has evolved, the constraints that forced each change, and where we’ve landed today.</p>
@@ -416,9 +416,6 @@ plug.Create(ctx, req)
 <li>For running <strong>formae</strong> at scale, the <strong>paid version</strong> supports <em>satellite agents</em>: agents on different hosts that manage plugin processes and relay back to the primary agent.</li>
 </ul>
 <p>Network transparency makes the agent oblivious to topology. From its perspective it’s just exchanging messages with a PluginOperator process, wherever that process happens to run.</p>
-<h2 id="get-jeroen-soeterss-stories-in-your-inbox">Get Jeroen Soeters’s stories in your inbox</h2>
-<p>Join Medium for free to get updates from this writer.</p>
-<p>Remember me for faster sign in</p>
 <p>Here is the shape of the change. Before, the whole pipeline lived in the agent process and shared one address space:</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/sdk-01.webp"><img src="/assets/img/sdk-01.jpg" alt="All actors share one address space; messages never leave the process." loading="lazy" decoding="async"></picture><figcaption>All actors share one address space; messages never leave the process.</figcaption></figure>
 <p>After, each plugin runs in its own separate process, with its own Ergo node and binary. The ResourceUpdater drives them all the same way, and the messages now cross a process boundary instead of staying in-process:</p>

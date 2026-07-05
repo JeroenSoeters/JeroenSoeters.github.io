@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fdfdfc">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e0e0f">
-<title>Solving Infrastructure Drift With formae — Jeroen Soeters</title>
+<title>Solving infrastructure drift with formae — Jeroen Soeters</title>
 <meta name="description" content="When your infrastructure code is up to date, there is no drift. How formae detects out-of-band changes and lets you reconcile — or absorb — them, instead of fighting drift.">
 <meta name="author" content="Jeroen Soeters">
 <link rel="canonical" href="https://jeroensoeters.github.io/solving-infrastructure-drift-with-formae/">
@@ -13,7 +13,7 @@
 <!-- Open Graph -->
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Jeroen Soeters">
-<meta property="og:title" content="Solving Infrastructure Drift With formae">
+<meta property="og:title" content="Solving infrastructure drift with formae">
 <meta property="og:description" content="When your infrastructure code is up to date, there is no drift. How formae detects out-of-band changes and lets you reconcile — or absorb — them, instead of fighting drift.">
 <meta property="og:url" content="https://jeroensoeters.github.io/solving-infrastructure-drift-with-formae/">
 <meta property="og:image" content="https://jeroensoeters.github.io/assets/img/solving-drift-og.jpg">
@@ -21,7 +21,7 @@
 <meta property="og:image:height" content="630">
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Solving Infrastructure Drift With formae">
+<meta name="twitter:title" content="Solving infrastructure drift with formae">
 <meta name="twitter:description" content="When your infrastructure code is up to date, there is no drift. How formae detects out-of-band changes and lets you reconcile — or absorb — them, instead of fighting drift.">
 <meta name="twitter:image" content="https://jeroensoeters.github.io/assets/img/solving-drift-og.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>◼</text></svg>">
@@ -329,58 +329,54 @@ figure.placeholder .box::before { content: "🖼  "; }
   </div></div></header>
 <main class="wrap">
 <article>
-  <figure class="hero"><picture><source type="image/webp" srcset="/assets/img/solving-drift.webp"><img src="/assets/img/solving-drift.jpg" alt="Solving Infrastructure Drift With formae" fetchpriority="high" decoding="async"></picture></figure>
+  <figure class="hero"><picture><source type="image/webp" srcset="/assets/img/solving-drift.webp"><img src="/assets/img/solving-drift.jpg" alt="Solving infrastructure drift with formae" fetchpriority="high" decoding="async"></picture></figure>
   <div class="post-header">
-    <h1>Solving Infrastructure Drift With formae</h1>
+    <h1>Solving infrastructure drift with formae</h1>
     <p class="post-meta"><time datetime="2025-12-11">December 11, 2025</time> · 6 min read</p>
   </div>
   <h2 id="when-your-infrastructure-code-is-up-to-date-there-is-no-drift">When your infrastructure code is up-to-date, there is no drift.</h2>
-<p>1</p>
 <p>Drift is a common challenge in the infrastructure-as-code (IaC) world. Infrastructure drift is the phenomenon where the actual state of infrastructure diverges from the desired state defined in code. This happens, for example, when changes are made directly to the infrastructure outside of the IaC tools. A core characteristic of the existing IaC platforms is the assumption of centrality and full ownership — that the IaC tool itself is the sole source of truth and the <em>only</em> approved mechanism for infrastructure modifications. This design philosophy inevitably leads to the questionable best practice of prohibiting or severely restricting changes outside of the IaC workflow.</p>
-<p>Meet <em>formae</em>, the IaC tool built to embrace the operational challenges from using various tools and approaches. <em>formae</em> continuously monitors your live infrastructure and codifies it into a single, versioned source of truth. When out-of-band changes are detected, <em>formae</em> automatically ** turns them into infrastructure code, and allows you to incorporate these changes into your own IaC codebase.</p>
+<p>Meet <a href="https://github.com/platform-engineering-labs/formae"><strong>formae</strong></a>, the IaC tool built to embrace the operational challenges from using various tools and approaches. <strong>formae</strong> continuously monitors your live infrastructure and codifies it into a single, versioned source of truth. When out-of-band changes are detected, <strong>formae</strong> <strong>automatically</strong> turns them into infrastructure code, and allows you to incorporate these changes into your own IaC codebase.</p>
 <p>In this article, we will look at how this works in practice.</p>
 <h2 id="synchronization">Synchronization</h2>
-<p>The <em>formae</em> agent is an active component that typically runs in the target infrastructure. When you submit a <em>formae</em> command via the CLI, the agent executes this command, not the CLI process. This allows <em>formae</em> to be intelligent about command execution. When conflicting commands are submitted by multiple people, <em>formae</em> can decide whether to queue the commands, reject the commands or execute them in parallel.</p>
-<p>But this is not all the agent is doing. The agent also periodically synchronizes its internal state with your live infrastructure to detect any out-of-band changes. You can customize at what interval this synchronization happens in the <em>formae</em> configuration. During the synchronization <em>formae</em> will compare all resources it knows about with their counterparts in the live infrastructure. If any differences are found, <em>formae</em> will store new versions of those resources internally. It also keeps record of which changes were made by the user via <em>formae</em> commands, and which were made outside of the tool.</p>
+<p>The <strong>formae</strong> agent is an active component that typically runs in the target infrastructure. When you submit a <strong>formae</strong> command via the CLI, the agent executes this command, not the CLI process. This allows <strong>formae</strong> to be intelligent about command execution. When conflicting commands are submitted by multiple people, <strong>formae</strong> can decide whether to queue the commands, reject the commands or execute them in parallel.</p>
+<p>But this is not all the agent is doing. The agent also periodically synchronizes its internal state with your live infrastructure to detect any out-of-band changes. You can customize at what interval this synchronization happens in the <strong>formae</strong> configuration. During the synchronization <strong>formae</strong> will compare all resources it knows about with their counterparts in the live infrastructure. If any differences are found, <strong>formae</strong> will store new versions of those resources internally. It also keeps record of which changes were made by the user via <strong>formae</strong> commands, and which were made outside of the tool.</p>
 <p>You can view the current state of your infrastructure by using the <code>formae inventory</code> command. Let’s take a look at how this works.</p>
 <h2 id="creating-a-resource-with-formae">Creating a Resource with formae</h2>
-<p>First, let’s create an AWS S3 bucket using <em>formae</em>. The forma Pkl file looks like this:</p>
+<p>First, let’s create an AWS S3 bucket using <strong>formae</strong>. The forma Pkl file looks like this:</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-01.webp"><img src="/assets/img/drift-01.jpg" alt="buc-ee.pkl" loading="lazy" decoding="async"></picture><figcaption>buc-ee.pkl</figcaption></figure>
-<p>Based on this forma Pkl, <em>formae</em> will create a stack called <code>buc-ees</code> with a single AWS S3 bucket resource. We can apply this forma using the <code>formae apply </code>command.</p>
+<p>Based on this forma Pkl, <strong>formae</strong> will create a stack called <code>buc-ees</code> with a single AWS S3 bucket resource. We can apply this forma using the <code>formae apply </code>command.</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-02.webp"><img src="/assets/img/drift-02.jpg" alt="drift-02.jpg" loading="lazy" decoding="async"></picture></figure>
-<p>We should see the resource being created. The <code>--watch</code> flag allows us to follow the progress of the operation. <em>formae</em> commands execute asynchronously on the agent, so we can at any time safely exit the CLI and at a later point check in on the status using <code>formae status</code> command.</p>
+<p>We should see the resource being created. The <code>--watch</code> flag allows us to follow the progress of the operation. <strong>formae</strong> commands execute asynchronously on the agent, so we can at any time safely exit the CLI and at a later point check in on the status using <code>formae status</code> command.</p>
 <p>When the operation completes, we can verify in the AWS Management Console that the bucket is created.</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-03.webp"><img src="/assets/img/drift-03.jpg" alt="drift-03.jpg" loading="lazy" decoding="async"></picture></figure>
-<p>Success! The S3 bucket has been created as expected. Now let’s use the <code>formae inventory</code> command to see if <em>formae</em> is tracking the resource.</p>
+<p>Success! The S3 bucket has been created as expected. Now let’s use the <code>formae inventory</code> command to see if <strong>formae</strong> is tracking the resource.</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-04.webp"><img src="/assets/img/drift-04.jpg" alt="drift-04.jpg" loading="lazy" decoding="async"></picture></figure>
-<p>By default <em>formae</em> displays a human-friendly view of the resource. We can see the machine-friendly output using the<code>--output-consumer machine</code> flag. We will do this in a bit.</p>
+<p>By default <strong>formae</strong> displays a human-friendly view of the resource. We can see the machine-friendly output using the<code>--output-consumer machine</code> flag. We will do this in a bit.</p>
 <p>Now let’s return to the AWS Console and make an out-of-band change to the AWS S3 bucket. For this example, we will add a tag to the bucket.</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-05.webp"><img src="/assets/img/drift-05.jpg" alt="drift-05.jpg" loading="lazy" decoding="async"></picture></figure>
-<p>We wait for <em>formae</em>’s synchronization job to pick up the change, and again run the <code>formae inventory</code> command. Now we request the machine-friendly output in the default JSON format, so we can pipe it to a tool like <code>jq </code>for detailed inspection.</p>
+<p>We wait for <strong>formae</strong>’s synchronization job to pick up the change, and again run the <code>formae inventory</code> command. Now we request the machine-friendly output in the default JSON format, so we can pipe it to a tool like <code>jq </code>for detailed inspection.</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-06.webp"><img src="/assets/img/drift-06.jpg" alt="drift-06.jpg" loading="lazy" decoding="async"></picture></figure>
-<p>We can see that <em>formae</em> has detected the out-of-band change made to the AWS S3 bucket. The new tag is now part of the resource definition in <em>formae</em>.</p>
+<p>We can see that <strong>formae</strong> has detected the out-of-band change made to the AWS S3 bucket. The new tag is now part of the resource definition in <strong>formae</strong>.</p>
 <h2 id="reconcile-vs-patch">Reconcile vs. Patch</h2>
-<p>You might have noticed we used the <code>--mode reconcile</code> flag when applying the forma earlier and wondered what it does. The presence of this flag tells <em>formae</em> that you want your actual infrastructure to <em>exactly</em> match the desired state defined in your forma Pkl file. Any resources defined in the forma that do not exist in the live infrastructure will be created, any resources that exist in the live infrastructure but are not defined in the forma will be deleted, and any resources that exist in both but differ, will be updated in the live infrastructure.</p>
-<h2 id="get-jeroen-soeterss-stories-in-your-inbox">Get Jeroen Soeters’s stories in your inbox</h2>
-<p>Join Medium for free to get updates from this writer.</p>
-<p>Remember me for faster sign in</p>
-<p>The other mode <em>formae</em> supports is <code>--mode patch</code>, which allows you to make surgical changes with minimal blast radius. We’ll look at this mode in another article.</p>
+<p>You might have noticed we used the <code>--mode reconcile</code> flag when applying the forma earlier and wondered what it does. The presence of this flag tells <strong>formae</strong> that you want your actual infrastructure to <em>exactly</em> match the desired state defined in your forma Pkl file. Any resources defined in the forma that do not exist in the live infrastructure will be created, any resources that exist in the live infrastructure but are not defined in the forma will be deleted, and any resources that exist in both but differ, will be updated in the live infrastructure.</p>
+<p>The other mode <strong>formae</strong> supports is <code>--mode patch</code>, which allows you to make surgical changes with minimal blast radius. We’ll look at this mode in another article.</p>
 <h2 id="hard-vs-soft-reconcile">Hard vs. Soft Reconcile</h2>
 <p>Let’s see what happens when we now try to reconcile from infrastructure code by running the <code>formae apply</code> command again — after we detected out-of-band changes.</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-07.webp"><img src="/assets/img/drift-07.jpg" alt="drift-07.jpg" loading="lazy" decoding="async"></picture></figure>
-<p>As you can see, <em>formae</em> rejects the operation outright.</p>
-<p>This happens because, by default, <em>formae</em> attempts to reconcile in the so-called <strong>soft</strong> mode. In this mode, unlike traditional tools that blindly enforce reconciliation from code, <em>formae</em> assumes that out-of-band changes might be intentional and important. It guarantees that out-of-bound work — whether it was a hotfix or an experiment — is never silently overwritten.</p>
-<p>When <em>formae</em> detects this kind of reconciliation conflict, it offers two clear paths forward:</p>
+<p>As you can see, <strong>formae</strong> rejects the operation outright.</p>
+<p>This happens because, by default, <strong>formae</strong> attempts to reconcile in the so-called <strong>soft</strong> mode. In this mode, unlike traditional tools that blindly enforce reconciliation from code, <strong>formae</strong> assumes that out-of-band changes might be intentional and important. It guarantees that out-of-bound work — whether it was a hotfix or an experiment — is never silently overwritten.</p>
+<p>When <strong>formae</strong> detects this kind of reconciliation conflict, it offers two clear paths forward:</p>
 <p><strong>1. Hard reconciliation:</strong> You can choose to enforce reconciliation from code. By running <code>formae apply</code> with the <code>--force</code> flag, you perform <strong>hard</strong> reconciliation. This is how the traditional GitOps approach using existing IaC tools works: the manually added tag is discarded, and the infrastructure is reset to exactly match your forma file.</p>
-<p><strong>2. Absorb out-of-bound changes:</strong> Alternatively, you can choose to embrace the change. Since <em>formae</em> knows exactly what changed, it provides a <code>formae extract</code> command in the output. This command generates the Pkl code that matches the live infrastructure. Let’s run the suggested extract command.</p>
+<p><strong>2. Absorb out-of-bound changes:</strong> Alternatively, you can choose to embrace the change. Since <strong>formae</strong> knows exactly what changed, it provides a <code>formae extract</code> command in the output. This command generates the Pkl code that matches the live infrastructure. Let’s run the suggested extract command.</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-08.webp"><img src="/assets/img/drift-08.jpg" alt="drift-08.jpg" loading="lazy" decoding="async"></picture></figure>
 <p>In the resulting code, we see the tag we manually added. You can now incorporate this code into your existing IaC codebase, bringing it back in sync with reality — without losing the out-of-band changes.</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-09.webp"><img src="/assets/img/drift-09.jpg" alt="drift-09.jpg" loading="lazy" decoding="async"></picture></figure>
 <p>We can also choose to do <strong>hard</strong> reconciliation using the <code>--force</code> flag and discard the out-of-band changes.</p>
 <figure><picture><source type="image/webp" srcset="/assets/img/drift-10.webp"><img src="/assets/img/drift-10.jpg" alt="drift-10.jpg" loading="lazy" decoding="async"></picture></figure>
-<p>A perspicacious reader might wonder what happens if we make an out-of-band change, and before <em>formae</em>’s synchronization job detects it, we make another change via <em>formae</em>. No worries, <em>formae</em> has your back. Before any destructive update <em>formae</em> will always check if the live infrastructure matches the last known state. If it doesn’t, <em>formae</em> will reject the command, and it is up to you to resolve the conflict as described above.</p>
+<p>A perspicacious reader might wonder what happens if we make an out-of-band change, and before <strong>formae</strong>’s synchronization job detects it, we make another change via <strong>formae</strong>. No worries, <strong>formae</strong> has your back. Before any destructive update <strong>formae</strong> will always check if the live infrastructure matches the last known state. If it doesn’t, <strong>formae</strong> will reject the command, and it is up to you to resolve the conflict as described above.</p>
 <h2 id="conclusion">Conclusion</h2>
-<p>There are many scenarios where out-of-band changes are legitimate. For example, a security team responding to an active incident using their own tools, an infrastructure architect ensuring resources are correctly tagged, cost-optimization tools doing their job etc. Instead of fighting drift, <em>formae</em> embraces reality and puts you in control.</p>
+<p>There are many scenarios where out-of-band changes are legitimate. For example, a security team responding to an active incident using their own tools, an infrastructure architect ensuring resources are correctly tagged, cost-optimization tools doing their job etc. Instead of fighting drift, <strong>formae</strong> embraces reality and puts you in control.</p>
 
 </article>
 </main>

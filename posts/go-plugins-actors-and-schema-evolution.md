@@ -1,5 +1,5 @@
 ---
-title: "Go plugins, actors, and schema evolution: inside formae's plugin SDK"
+title: "Go plugins, actors, and schema evolution: Inside formae's plugin SDK"
 slug: go-plugins-actors-and-schema-evolution
 date: 2026-06-01
 description: How formae's plugin SDK evolved across three iterations — from an in-process actor system to independent, hot-swappable plugin binaries on a schema we can change without breaking the fleet.
@@ -120,12 +120,6 @@ Concretely this means you send messages the same way regardless of where the rec
 - For running **formae** at scale, the **paid version** supports *satellite agents*: agents on different hosts that manage plugin processes and relay back to the primary agent.
 
 Network transparency makes the agent oblivious to topology. From its perspective it’s just exchanging messages with a PluginOperator process, wherever that process happens to run.
-
-## Get Jeroen Soeters’s stories in your inbox
-
-Join Medium for free to get updates from this writer.
-
-Remember me for faster sign in
 
 Here is the shape of the change. Before, the whole pipeline lived in the agent process and shared one address space:
 
