@@ -1,0 +1,43 @@
+<svg viewBox="0 0 560 330" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <!-- column header group label -->
+  <text x="350" y="26" font-size="14" fill="#333333" text-anchor="middle" font-weight="600">Complexity of the design</text>
+
+  <!-- column headers -->
+  <text x="255" y="54" font-size="14" fill="#333333" text-anchor="middle">Trivial</text>
+  <text x="445" y="54" font-size="14" fill="#333333" text-anchor="middle">Complex</text>
+
+  <!-- row header group label (rotated) -->
+  <text x="26" y="195" font-size="14" fill="#333333" text-anchor="middle" font-weight="600" transform="rotate(-90 26 195)">Who owns the code</text>
+
+  <!-- row headers -->
+  <text x="110" y="130" font-size="14" fill="#333333" text-anchor="middle">Me</text>
+  <text x="110" y="255" font-size="14" fill="#333333" text-anchor="middle">No one</text>
+
+  <!-- quadrant fills (touching, inside one frame) -->
+  <!-- Me / Trivial -->
+  <rect x="160" y="65" width="190" height="125" fill="#d5f0e8"/>
+  <!-- Me / Complex (odd one out) -->
+  <rect x="350" y="65" width="190" height="125" fill="#ece7fb"/>
+  <!-- No one / Trivial -->
+  <rect x="160" y="190" width="190" height="125" fill="#d5f0e8"/>
+  <!-- No one / Complex -->
+  <rect x="350" y="190" width="190" height="125" fill="#d5f0e8"/>
+
+  <!-- grid lines: outer frame + internal dividers -->
+  <rect x="160" y="65" width="380" height="250" fill="none" stroke="#0f766e" stroke-width="1.5"/>
+  <line x1="350" y1="65" x2="350" y2="315" stroke="#0f766e" stroke-width="1.5"/>
+  <line x1="160" y1="190" x2="540" y2="190" stroke="#0f766e" stroke-width="1.5"/>
+
+  <!-- cell labels -->
+  <text x="255" y="121" font-size="14" fill="#134e4a" text-anchor="middle">Product</text>
+  <text x="255" y="141" font-size="14" fill="#134e4a" text-anchor="middle">specification</text>
+
+  <text x="445" y="121" font-size="14" fill="#5b21b6" text-anchor="middle">Technical</text>
+  <text x="445" y="141" font-size="14" fill="#5b21b6" text-anchor="middle">design</text>
+
+  <text x="255" y="246" font-size="14" fill="#134e4a" text-anchor="middle">Product</text>
+  <text x="255" y="266" font-size="14" fill="#134e4a" text-anchor="middle">specification</text>
+
+  <text x="445" y="246" font-size="14" fill="#134e4a" text-anchor="middle">Product</text>
+  <text x="445" y="266" font-size="14" fill="#134e4a" text-anchor="middle">specification</text>
+</svg>

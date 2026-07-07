@@ -80,9 +80,17 @@ With all of this in place, I kept finding myself in the same situation. I'd be d
 
 That loop was itself mechanical, so it quickly became its own skill. `clank-through` takes an existing ticket and oversees a clanker end to end, walking it across the board and escalating to me only when something genuinely needs a decision. So there we are: agents delegating work to agents delegating work to agents 🤖.
 
-This is our dark factory as it stands: work moves through the pipeline on its own, and I only step in when a clanker is genuinely blocked.
+## The dark factory
+
+This is our factory as it stands: work moves through the pipeline on its own, and I only step in when a clanker is genuinely blocked.
 
 The type of work we hand to clankers isn't really limited by size. A clanker can take on quite complex tasks, as long as the product outcome is clear (a clanker should never be making product decisions) and the design is either obvious, not important, or close enough to something that already exists for the clanker to pattern-match against. Beyond that you hit diminishing returns: working out a tricky design through issue comments is painful, and much easier in an interactive session. Once the design is settled I attach it to the issue and hand the implementation to a clanker, rather than driving it myself in Claude Code.
+
+Stated differently, my mental model of the dark factory is two production lines: product specification → technical design and technical design → working software. Work can be injected into either one. Where I inject it depends on whether I care about the code that will be produced and on the complexity of the design. Complexity here assumes no prior art: something can be highly complex, but if it has been done a million times before it is trivial for an LLM.
+
+{{diagram: injection-matrix.svg | Where work gets injected: who owns the code × complexity of the design.}}
+
+A true dark factory would run both lines lights-out: product spec in, working software out, across all four quadrants. For a complex, highly concurrent and distributed system like the one we are building, however, I don't see this being realistic yet.
 
 
 Of course, the entire clanker stack, the Agent Bridge, the containers it spawns, the firewall that boxes them in, is declared in Pkl and provisioned with [formae](https://github.com/platform-engineering-labs/formae) itself, on our own production AWS estate. The tool provisions the factory that builds the tool.
