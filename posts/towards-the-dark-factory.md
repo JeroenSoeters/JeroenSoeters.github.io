@@ -93,4 +93,4 @@ Stated differently, my mental model of the dark factory is two production lines:
 A true dark factory would run both lines lights-out: product spec in, working software out, across all four quadrants. For a complex, highly concurrent and distributed system like the one we are building, however, I don't see this being realistic yet.
 
 
-Of course, the entire clanker stack, the Agent Bridge, the containers it spawns, the firewall that boxes them in, is declared in Pkl and provisioned with [formae](https://github.com/platform-engineering-labs/formae) itself, on our own production AWS estate. The tool provisions the factory that builds the tool.
+Of course, the entire clanker stack (the Agent Bridge, the containers it spawns, the firewall that boxes them in) is declared in Pkl and provisioned with formae itself on our own production AWS estate. The tool provisions the factory that builds the tool. (And yes, [formae](https://github.com/platform-engineering-labs/formae) is entirely open-source, if you want to try it out for yourself.)
